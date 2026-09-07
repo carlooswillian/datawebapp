@@ -4,27 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nossas Datas</title>
-    <!-- Tailwind CSS para estilização rápida -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Animações e ajustes de Web App */
         body { -webkit-tap-highlight-color: transparent; }
-        .card-transition { transition: all 0.3s ease; }
+        .card-transition { transition: all 0.2s ease; }
         .card-transition:active { transform: scale(0.98); }
         .modal-enter { animation: slideUp 0.3s ease-out forwards; }
         @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-        /* Oculta scrollbar mas permite scroll */
         ::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen pb-24">
 
-    <!-- Header -->
+    <!-- Header com ícone de Configurações -->
     <header class="bg-white shadow-sm sticky top-0 z-10 px-6 py-4 flex justify-between items-center">
         <h1 class="text-2xl font-bold text-indigo-600">Nossas Datas ❤️</h1>
+        <button onclick="toggleSettingsModal(true)" class="p-2 text-gray-500 hover:text-indigo-600 transition-colors focus:outline-none">
+            <!-- Ícone de Engrenagem (Settings) -->
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+        </button>
     </header>
 
     <!-- Lista de Cards -->
@@ -32,15 +38,15 @@
         <p class="text-center text-gray-500 mt-10" id="loading-msg">Carregando datas...</p>
     </main>
 
-    <!-- Botão Flutuante (FAB) -->
-    <button onclick="toggleModal(true)" class="fixed bottom-6 right-6 bg-indigo-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-3xl card-transition z-20">
+    <!-- Botão Flutuante (FAB) para Adicionar -->
+    <button onclick="toggleAddModal(true)" class="fixed bottom-6 right-6 bg-indigo-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-3xl card-transition z-20">
         +
     </button>
 
     <!-- Modal de Adicionar Data -->
     <div id="add-modal" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden flex items-end justify-center">
         <div class="bg-white w-full max-w-md rounded-t-3xl p-6 modal-enter relative">
-            <button onclick="toggleModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">X</button>
+            <button onclick="toggleAddModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">✕</button>
             <h2 class="text-xl font-bold mb-6 text-gray-800">Nova Data Especial</h2>
             
             <form id="add-form" class="space-y-4">
@@ -63,215 +69,38 @@
         </div>
     </div>
 
-    <script>
-        // COLOQUE A URL DO SEU GOOGLE APPS SCRIPT AQUI
-        const API_URL = "https://script.google.com/macros/s/AKfycbwb7wzDPK59bm_IPQEBq3aJCiK9xYY3x1i1alunem9GYeV4oPGjuaw3k87gKfN4CM77/exec";
-
-        let eventsData = [];
-        let viewMode = 'days'; // 'days' ou 'detailed'
-
-        async function fetchDatas() {
-            try {
-                const response = await fetch(API_URL);
-                eventsData = await response.json();
-                renderCards();
-            } catch (error) {
-                document.getElementById('loading-msg').innerText = "Erro ao carregar os dados.";
-            }
-        }
-
-        function toggleModal(show) {
-            const modal = document.getElementById('add-modal');
-            if (show) {
-                modal.classList.remove('hidden');
-            } else {
-                modal.classList.add('hidden');
-                document.getElementById('add-form').reset();
-            }
-        }
-
-        // Alterna entre mostrar total de dias ou anos/meses/dias
-        function toggleViewMode() {
-            viewMode = viewMode === 'days' ? 'detailed' : 'days';
-            renderCards();
-        }
-
-        function calculateTime(dateString) {
-            const targetDate = new Date(dateString + "T00:00:00"); // Força o fuso horário correto
-            const now = new Date();
-            now.setHours(0,0,0,0); // Zera as horas para comparar apenas os dias
-            
-            const diffTime = targetDate - now;
-            const isFuture = diffTime > 0;
-            const totalDays = Math.floor(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
-
-            if (totalDays === 0) return { text: "É hoje! 🎉", isFuture: true, class: "text-indigo-600" };
-
-            if (viewMode === 'days') {
-                return {
-                    text: isFuture ? `Faltam ${totalDays} dias` : `Há ${totalDays} dias`,
-                    isFuture: isFuture,
-                    class: isFuture ? "text-green-500" : "text-gray-500"
-                };
-            } else {
-                // Cálculo detalhado (aproximado para UI)
-                let years = Math.floor(totalDays / 365);
-                let months = Math.floor((totalDays % 365) / 30);
-                let days = Math.floor((totalDays % 365) % 30);
-                
-                let parts = [];
-                if (years > 0) parts.push(`${years} ano${years > 1 ? 's' : ''}`);
-                if (months > 0) parts.push(`${months} mês${months > 1 ? 'es' : ''}`);
-                if (days > 0 || parts.length === 0) parts.push(`${days} dia${days > 1 ? 's' : ''}`);
-                
-                return {
-                    text: isFuture ? `Falta: ${parts.join(', ')}` : `Passou: ${parts.join(', ')}`,
-                    isFuture: isFuture,
-                    class: isFuture ? "text-green-500" : "text-gray-500"
-                };
-            }
-        }
-
-        function renderCards() {
-            const container = document.getElementById('cards-container');
-            container.innerHTML = '';
-            
-            if (eventsData.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-500 mt-10">Nenhuma data cadastrada ainda.</p>';
-                return;
-            }
-
-            // Ordena para que os eventos futuros mais próximos fiquem no topo
-            eventsData.sort((a, b) => new Date(a.data) - new Date(b.data));
-
-            eventsData.forEach(event => {
-                const timeInfo = calculateTime(event.data);
-                
-                // Formatando a data de DD-MM-YYYY para visualização
-                const dateObj = new Date(event.data + "T00:00:00");
-                const formattedDate = dateObj.toLocaleDateString('pt-BR');
-
-                const card = document.createElement('div');
-                card.className = "bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center card-transition cursor-pointer";
-                card.onclick = toggleViewMode; // Clicar no card muda o formato de exibição
-
-                card.innerHTML = `
-                    <div class="text-4xl mr-4">${event.emoji || '📅'}</div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-gray-800 text-lg">${event.titulo}</h3>
-                        <p class="text-sm text-gray-400">${formattedDate}</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="font-bold text-sm ${timeInfo.class} bg-gray-50 py-1 px-3 rounded-full">
-                            ${timeInfo.text}
-                        </span>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-            
-            const hint = document.createElement('p');
-            hint.className = "text-center text-xs text-gray-400 mt-4";
-            hint.innerText = "Dica: Toque nos cards para mudar o formato de visualização.";
-            container.appendChild(hint);
-        }
-
-        // Enviando nova data para o Google Sheets
-        document.getElementById('add-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-salvar');
-            btn.innerText = "Salvando...";
-            btn.disabled = true;
-
-            const newData = {
-                emoji: document.getElementById('emoji-input').value,
-                titulo: document.getElementById('title-input').value,
-                data: document.getElementById('date-input').value
-            };
-
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(newData)
-                });
-                // Recarrega as datas
-                await fetchDatas();
-                toggleModal(false);
-            } catch (error) {
-                alert("Erro ao salvar. Tente novamente.");
-            } finally {
-                btn.innerText = "Salvar Data";
-                btn.disabled = false;
-            }
-        });
-
-        // Inicia carregando os dados
-        fetchDatas();
-    </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nossas Datas</title>
-    <!-- Tailwind CSS para estilização rápida -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Animações e ajustes de Web App */
-        body { -webkit-tap-highlight-color: transparent; }
-        .card-transition { transition: all 0.3s ease; }
-        .card-transition:active { transform: scale(0.98); }
-        .modal-enter { animation: slideUp 0.3s ease-out forwards; }
-        @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        /* Oculta scrollbar mas permite scroll */
-        ::-webkit-scrollbar { display: none; }
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen pb-24">
-
-    <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-10 px-6 py-4 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-indigo-600">Nossas Datas ❤️</h1>
-    </header>
-
-    <!-- Lista de Cards -->
-    <main id="cards-container" class="p-4 space-y-4">
-        <p class="text-center text-gray-500 mt-10" id="loading-msg">Carregando datas...</p>
-    </main>
-
-    <!-- Botão Flutuante (FAB) -->
-    <button onclick="toggleModal(true)" class="fixed bottom-6 right-6 bg-indigo-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-3xl card-transition z-20">
-        +
-    </button>
-
-    <!-- Modal de Adicionar Data -->
-    <div id="add-modal" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden flex items-end justify-center">
+    <!-- Modal de Configurações (Formato de Data) -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden flex items-end justify-center">
         <div class="bg-white w-full max-w-md rounded-t-3xl p-6 modal-enter relative">
-            <button onclick="toggleModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">X</button>
-            <h2 class="text-xl font-bold mb-6 text-gray-800">Nova Data Especial</h2>
+            <button onclick="toggleSettingsModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">✕</button>
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Formato de Exibição</h2>
+            <p class="text-sm text-gray-500 mb-6">Escolha como prefere ver a contagem das suas datas:</p>
             
-            <form id="add-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Emoji</label>
-                    <input type="text" id="emoji-input" placeholder="🎉" maxlength="2" class="mt-1 w-16 text-center text-2xl border-gray-300 border rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Título</label>
-                    <input type="text" id="title-input" placeholder="Ex: Dia do Casamento" class="mt-1 w-full border-gray-300 border rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Data</label>
-                    <input type="date" id="date-input" class="mt-1 w-full border-gray-300 border rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500" required>
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl mt-4 card-transition" id="btn-salvar">
-                    Salvar Data
-                </button>
-            </form>
+            <div class="space-y-3">
+                <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="viewModeOption" value="days" class="text-indigo-600 focus:ring-indigo-500" onchange="changeViewMode('days')">
+                    <div class="ml-3">
+                        <span class="block text-sm font-semibold text-gray-800">Dias Totais</span>
+                        <span class="block text-xs text-gray-500">Ex: Faltam 450 dias</span>
+                    </div>
+                </label>
+
+                <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="viewModeOption" value="full" class="text-indigo-600 focus:ring-indigo-500" onchange="changeViewMode('full')">
+                    <div class="ml-3">
+                        <span class="block text-sm font-semibold text-gray-800">Anos, Meses e Dias</span>
+                        <span class="block text-xs text-gray-500">Ex: Falta 1 ano, 2 meses e 15 dias</span>
+                    </div>
+                </label>
+
+                <label class="flex items-center p-3 border rounded-xl cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="viewModeOption" value="months" class="text-indigo-600 focus:ring-indigo-500" onchange="changeViewMode('months')">
+                    <div class="ml-3">
+                        <span class="block text-sm font-semibold text-gray-800">Apenas Meses e Dias</span>
+                        <span class="block text-xs text-gray-500">Ex: Faltam 14 meses e 15 dias</span>
+                    </div>
+                </label>
+            </div>
         </div>
     </div>
 
@@ -280,7 +109,33 @@
         const API_URL = "SUA_URL_DO_APPS_SCRIPT_AQUI";
 
         let eventsData = [];
-        let viewMode = 'days'; // 'days' ou 'detailed'
+        // Carrega o formato salvo no navegador ou usa 'days' por padrão
+        let viewMode = localStorage.getItem('user_view_mode') || 'days';
+
+        // Função ultra-robusta para converter qualquer formato de data recebido
+        function parseDate(dateInput) {
+            if (!dateInput) return null;
+
+            // Caso venha em formato ISO com 'T' (ex: 2025-12-14T00:00:00.000Z)
+            if (typeof dateInput === 'string' && dateInput.includes('T')) {
+                dateInput = dateInput.split('T')[0];
+            }
+
+            // Formato YYYY-MM-DD
+            if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+                const [y, m, d] = dateInput.split('-').map(Number);
+                return new Date(y, m - 1, d);
+            }
+
+            // Formato DD/MM/YYYY (comum no Sheets BR)
+            if (typeof dateInput === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(dateInput)) {
+                const [d, m, y] = dateInput.split('/').map(Number);
+                return new Date(y, m - 1, d);
+            }
+
+            const parsed = new Date(dateInput);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
 
         async function fetchDatas() {
             try {
@@ -288,11 +143,11 @@
                 eventsData = await response.json();
                 renderCards();
             } catch (error) {
-                document.getElementById('loading-msg').innerText = "Erro ao carregar os dados.";
+                document.getElementById('loading-msg').innerText = "Erro ao carregar as datas.";
             }
         }
 
-        function toggleModal(show) {
+        function toggleAddModal(show) {
             const modal = document.getElementById('add-modal');
             if (show) {
                 modal.classList.remove('hidden');
@@ -302,44 +157,102 @@
             }
         }
 
-        // Alterna entre mostrar total de dias ou anos/meses/dias
-        function toggleViewMode() {
-            viewMode = viewMode === 'days' ? 'detailed' : 'days';
-            renderCards();
+        function toggleSettingsModal(show) {
+            const modal = document.getElementById('settings-modal');
+            if (show) {
+                // Marca a opção atualmente selecionada no modal
+                const radios = document.getElementsByName('viewModeOption');
+                radios.forEach(radio => {
+                    if (radio.value === viewMode) radio.checked = true;
+                });
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
         }
 
-        function calculateTime(dateString) {
-            const targetDate = new Date(dateString + "T00:00:00"); // Força o fuso horário correto
+        function changeViewMode(mode) {
+            viewMode = mode;
+            localStorage.setItem('user_view_mode', mode); // Salva a preferência
+            renderCards();
+            setTimeout(() => toggleSettingsModal(false), 200); // Fecha o modal suavemente
+        }
+
+        function calculateTime(dateInput) {
+            const targetDate = parseDate(dateInput);
+            if (!targetDate) return { text: "Data inválida", class: "text-red-500 bg-red-50" };
+
             const now = new Date();
-            now.setHours(0,0,0,0); // Zera as horas para comparar apenas os dias
-            
+            now.setHours(0, 0, 0, 0);
+            targetDate.setHours(0, 0, 0, 0);
+
             const diffTime = targetDate - now;
             const isFuture = diffTime > 0;
             const totalDays = Math.floor(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
 
-            if (totalDays === 0) return { text: "É hoje! 🎉", isFuture: true, class: "text-indigo-600" };
+            if (totalDays === 0) return { text: "É hoje! 🎉", isFuture: true, class: "text-indigo-600 bg-indigo-50 font-bold" };
 
+            const badgeClass = isFuture ? "text-emerald-600 bg-emerald-50" : "text-gray-500 bg-gray-100";
+
+            // Opção 1: Dias totais
             if (viewMode === 'days') {
                 return {
                     text: isFuture ? `Faltam ${totalDays} dias` : `Há ${totalDays} dias`,
-                    isFuture: isFuture,
-                    class: isFuture ? "text-green-500" : "text-gray-500"
+                    class: badgeClass
                 };
-            } else {
-                // Cálculo detalhado (aproximado para UI)
-                let years = Math.floor(totalDays / 365);
-                let months = Math.floor((totalDays % 365) / 30);
-                let days = Math.floor((totalDays % 365) % 30);
-                
+            }
+
+            // Opção 2: Anos, Meses e Dias
+            if (viewMode === 'full') {
+                let d1 = isFuture ? now : targetDate;
+                let d2 = isFuture ? targetDate : now;
+
+                let years = d2.getFullYear() - d1.getFullYear();
+                let months = d2.getMonth() - d1.getMonth();
+                let days = d2.getDate() - d1.getDate();
+
+                if (days < 0) {
+                    months--;
+                    const prevMonthDays = new Date(d2.getFullYear(), d2.getMonth(), 0).getDate();
+                    days += prevMonthDays;
+                }
+                if (months < 0) {
+                    years--;
+                    months += 12;
+                }
+
                 let parts = [];
-                if (years > 0) parts.push(`${years} ano${years > 1 ? 's' : ''}`);
-                if (months > 0) parts.push(`${months} mês${months > 1 ? 'es' : ''}`);
-                if (days > 0 || parts.length === 0) parts.push(`${days} dia${days > 1 ? 's' : ''}`);
-                
+                if (years > 0) parts.push(`${years} ${years > 1 ? 'anos' : 'ano'}`);
+                if (months > 0) parts.push(`${months} ${months > 1 ? 'meses' : 'mês'}`);
+                if (days > 0 || parts.length === 0) parts.push(`${days} ${days > 1 ? 'dias' : 'dia'}`);
+
                 return {
-                    text: isFuture ? `Falta: ${parts.join(', ')}` : `Passou: ${parts.join(', ')}`,
-                    isFuture: isFuture,
-                    class: isFuture ? "text-green-500" : "text-gray-500"
+                    text: isFuture ? `Falta: ${parts.join(', ')}` : `Há ${parts.join(', ')}`,
+                    class: badgeClass
+                };
+            }
+
+            // Opção 3: Meses e Dias
+            if (viewMode === 'months') {
+                let d1 = isFuture ? now : targetDate;
+                let d2 = isFuture ? targetDate : now;
+
+                let totalMonths = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+                let days = d2.getDate() - d1.getDate();
+
+                if (days < 0) {
+                    totalMonths--;
+                    const prevMonthDays = new Date(d2.getFullYear(), d2.getMonth(), 0).getDate();
+                    days += prevMonthDays;
+                }
+
+                let parts = [];
+                if (totalMonths > 0) parts.push(`${totalMonths} ${totalMonths > 1 ? 'meses' : 'mês'}`);
+                if (days > 0 || parts.length === 0) parts.push(`${days} ${days > 1 ? 'dias' : 'dia'}`);
+
+                return {
+                    text: isFuture ? `Falta: ${parts.join(', ')}` : `Há ${parts.join(', ')}`,
+                    class: badgeClass
                 };
             }
         }
@@ -353,42 +266,43 @@
                 return;
             }
 
-            // Ordena para que os eventos futuros mais próximos fiquem no topo
-            eventsData.sort((a, b) => new Date(a.data) - new Date(b.data));
+            // Ordena datas futuras primeiro, da mais próxima para a mais distante
+            eventsData.sort((a, b) => {
+                const dateA = parseDate(a.data) || new Date(0);
+                const dateB = parseDate(b.data) || new Date(0);
+                return dateA - dateB;
+            });
 
             eventsData.forEach(event => {
                 const timeInfo = calculateTime(event.data);
+                const parsedDateObj = parseDate(event.data);
                 
-                // Formatando a data de DD-MM-YYYY para visualização
-                const dateObj = new Date(event.data + "T00:00:00");
-                const formattedDate = dateObj.toLocaleDateString('pt-BR');
+                const formattedDate = parsedDateObj 
+                    ? parsedDateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    : event.data;
 
                 const card = document.createElement('div');
-                card.className = "bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center card-transition cursor-pointer";
-                card.onclick = toggleViewMode; // Clicar no card muda o formato de exibição
+                card.className = "bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between";
 
                 card.innerHTML = `
-                    <div class="text-4xl mr-4">${event.emoji || '📅'}</div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-gray-800 text-lg">${event.titulo}</h3>
-                        <p class="text-sm text-gray-400">${formattedDate}</p>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-3xl">${event.emoji || '📅'}</div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-base leading-snug">${event.titulo}</h3>
+                            <p class="text-xs text-gray-400 mt-0.5">${formattedDate}</p>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <span class="font-bold text-sm ${timeInfo.class} bg-gray-50 py-1 px-3 rounded-full">
+                    <div class="text-right ml-2">
+                        <span class="font-semibold text-xs py-1.5 px-3 rounded-full inline-block ${timeInfo.class}">
                             ${timeInfo.text}
                         </span>
                     </div>
                 `;
                 container.appendChild(card);
             });
-            
-            const hint = document.createElement('p');
-            hint.className = "text-center text-xs text-gray-400 mt-4";
-            hint.innerText = "Dica: Toque nos cards para mudar o formato de visualização.";
-            container.appendChild(hint);
         }
 
-        // Enviando nova data para o Google Sheets
+        // Adicionar nova data
         document.getElementById('add-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-salvar');
@@ -406,18 +320,17 @@
                     method: 'POST',
                     body: JSON.stringify(newData)
                 });
-                // Recarrega as datas
                 await fetchDatas();
-                toggleModal(false);
+                toggleAddModal(false);
             } catch (error) {
-                alert("Erro ao salvar. Tente novamente.");
+                alert("Erro ao salvar a data. Tente novamente.");
             } finally {
                 btn.innerText = "Salvar Data";
                 btn.disabled = false;
             }
         });
 
-        // Inicia carregando os dados
+        // Inicializa buscando os dados
         fetchDatas();
     </script>
 </body>
