@@ -12,9 +12,14 @@
             color: #ffffff;
         }
         .modal-enter { animation: slideUp 0.3s ease-out forwards; }
+        .fade-in { animation: fadeIn 0.25s ease-out forwards; }
         @keyframes slideUp {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
         }
         ::-webkit-scrollbar { display: none; }
         ::-webkit-calendar-picker-indicator { filter: invert(1); }
@@ -22,8 +27,8 @@
 </head>
 <body class="font-sans antialiased min-h-screen pb-32">
 
-    <!-- Header -->
-    <header class="px-6 py-4 flex justify-between items-center sticky top-0 bg-black/80 backdrop-blur-md z-10">
+    <!-- Tela Principal: Header -->
+    <header id="main-header" class="px-6 py-4 flex justify-between items-center sticky top-0 bg-black/80 backdrop-blur-md z-10">
         <h1 class="text-2xl font-bold text-white tracking-wide">Nossas Datas</h1>
         <button onclick="toggleSettingsModal(true)" class="text-gray-400 hover:text-white p-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -33,14 +38,14 @@
         </button>
     </header>
 
-    <!-- Container dos Cards -->
+    <!-- Tela Principal: Container dos Cards -->
     <main id="cards-container" class="p-4 space-y-4">
         <p class="text-center text-gray-500 mt-10" id="loading-msg">Carregando datas...</p>
     </main>
 
-    <!-- Botão Inferior -->
-    <div class="fixed bottom-6 w-full px-4 z-20 flex justify-center">
-        <button onclick="toggleModal(true)" class="w-full max-w-sm bg-[#3A7CF7] text-white font-bold py-4 rounded-full shadow-lg flex items-center justify-center text-lg active:scale-95 transition-transform">
+    <!-- Botão Inferior (Nova Contagem) -->
+    <div id="main-footer-btn" class="fixed bottom-6 w-full px-4 z-20 flex justify-center">
+        <button onclick="openAddModal()" class="w-full max-w-sm bg-[#3A7CF7] text-white font-bold py-4 rounded-full shadow-lg flex items-center justify-center text-lg active:scale-95 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
@@ -48,15 +53,85 @@
         </button>
     </div>
 
-    <!-- Modal de Adicionar Data -->
-    <div id="add-modal" class="fixed inset-0 bg-black z-30 hidden flex-col modal-enter">
+    <!-- TELA DE DETALHES DO CARD (Estilo Referência) -->
+    <div id="detail-screen" class="fixed inset-0 z-30 hidden flex-col transition-all">
+        <!-- Header Detalhes -->
+        <div class="px-6 py-4 flex justify-between items-center bg-black/20 backdrop-blur-md">
+            <button onclick="closeDetailScreen()" class="bg-black/30 rounded-full p-2 text-white hover:bg-black/50 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <div class="flex items-center space-x-3">
+                <button onclick="openEditModal()" class="bg-white/20 hover:bg-white/30 text-white font-medium px-4 py-1.5 rounded-full text-sm backdrop-blur-md transition-all">
+                    Editar
+                </button>
+            </div>
+        </div>
+
+        <!-- Conteúdo Detalhado Central -->
+        <div class="flex-1 flex flex-col items-center justify-center p-6 text-center -mt-10">
+            <!-- Emoji com círculo em volta -->
+            <div id="detail-emoji-container" class="w-32 h-32 rounded-full flex items-center justify-center shadow-xl relative mb-6 border-4 border-white/10">
+                <span id="detail-emoji" class="text-6xl">❤️</span>
+                <div class="absolute bottom-1 right-2 bg-black/40 rounded-full w-8 h-8 flex items-center justify-center border border-white/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Título e Data Completa -->
+            <h2 id="detail-title" class="text-3xl font-bold text-white mb-1">Namoro</h2>
+            <p id="detail-date-text" class="text-sm text-white/80 mb-8 capitalize">domingo, 30 de abril de 2023</p>
+
+            <!-- Bloco 1: Anos, Meses e Dias -->
+            <div class="bg-black/25 backdrop-blur-md rounded-2xl p-4 w-full max-w-sm mb-4 border border-white/10 shadow-lg flex justify-around items-center">
+                <div class="text-center px-2">
+                    <span id="det-years" class="text-3xl font-bold text-white block leading-tight">3</span>
+                    <span class="text-xs text-white/70 uppercase tracking-wider">anos</span>
+                </div>
+                <div class="h-8 w-px bg-white/20"></div>
+                <div class="text-center px-2">
+                    <span id="det-months" class="text-3xl font-bold text-white block leading-tight">4</span>
+                    <span class="text-xs text-white/70 uppercase tracking-wider">meses</span>
+                </div>
+                <div class="h-8 w-px bg-white/20"></div>
+                <div class="text-center px-2">
+                    <span id="det-days" class="text-3xl font-bold text-white block leading-tight">8</span>
+                    <span class="text-xs text-white/70 uppercase tracking-wider">dias</span>
+                </div>
+            </div>
+
+            <!-- Bloco 2: Horas, Minutos e Segundos (Tempo Real) -->
+            <div class="bg-black/25 backdrop-blur-md rounded-2xl p-4 w-full max-w-sm border border-white/10 shadow-lg flex justify-around items-center">
+                <div class="text-center px-2">
+                    <span id="det-hours" class="text-2xl font-bold text-white block leading-tight">10</span>
+                    <span class="text-[10px] text-white/70 uppercase tracking-wider">horas</span>
+                </div>
+                <span class="text-xl font-bold text-white/40">:</span>
+                <div class="text-center px-2">
+                    <span id="det-minutes" class="text-2xl font-bold text-white block leading-tight">19</span>
+                    <span class="text-[10px] text-white/70 uppercase tracking-wider">min</span>
+                </div>
+                <span class="text-xl font-bold text-white/40">:</span>
+                <div class="text-center px-2">
+                    <span id="det-seconds" class="text-2xl font-bold text-white block leading-tight">37</span>
+                    <span class="text-[10px] text-white/70 uppercase tracking-wider">seg</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Adicionar / Editar Data -->
+    <div id="add-modal" class="fixed inset-0 bg-black z-40 hidden flex-col modal-enter">
         <div class="flex justify-between items-center p-4 border-b border-gray-800 bg-[#121212]">
-            <button onclick="toggleModal(false)" class="bg-[#2C2C2E] rounded-full p-2 text-white">
+            <button onclick="closeAddModal()" class="bg-[#2C2C2E] rounded-full p-2 text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
-            <h2 class="text-lg font-semibold text-white">Nova contagem</h2>
+            <h2 id="modal-header-title" class="text-lg font-semibold text-white">Nova contagem</h2>
             <button type="submit" form="add-form" id="btn-salvar" class="bg-[#1DA1F2] text-white font-bold py-1.5 px-4 rounded-full text-sm">
                 Salvar
             </button>
@@ -64,6 +139,7 @@
         
         <div class="p-4 overflow-y-auto flex-1 bg-black">
             <form id="add-form" class="space-y-6">
+                <input type="hidden" id="edit-id" value="">
                 <div>
                     <label class="block text-sm text-gray-400 mb-2 ml-2">Escolha um título e emoji</label>
                     <div class="bg-[#1C1C1E] rounded-2xl p-2 flex items-center">
@@ -82,23 +158,29 @@
                 <div>
                     <label class="block text-sm text-gray-400 mb-2 ml-2">Escolha uma cor</label>
                     <div class="bg-[#1C1C1E] rounded-2xl p-4">
-                        <div class="flex flex-wrap gap-3 justify-center" id="color-picker-container">
-                        </div>
+                        <div class="flex flex-wrap gap-3 justify-center" id="color-picker-container"></div>
                     </div>
+                </div>
+
+                <!-- Botão Excluir (Aparece apenas ao editar) -->
+                <div id="delete-container" class="pt-4 hidden">
+                    <button type="button" onclick="deleteCurrentEvent()" class="w-full bg-red-600/20 text-red-500 font-bold py-3.5 rounded-2xl border border-red-500/30 active:scale-95 transition-transform">
+                        Excluir contagem
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Modal de Configurações -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/90 z-30 hidden flex items-end justify-center">
+    <div id="settings-modal" class="fixed inset-0 bg-black/90 z-40 hidden flex items-end justify-center">
         <div class="bg-[#1C1C1E] w-full max-w-md rounded-t-3xl p-6 modal-enter relative border-t border-gray-800">
             <button onclick="toggleSettingsModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">X</button>
             <h2 class="text-xl font-bold mb-6 text-white">Configurações</h2>
             
             <div class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-2">Formato da contagem</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Formato da contagem na lista</label>
                     <select id="view-mode-select" onchange="changeViewMode(this.value)" class="w-full border-gray-700 bg-[#2C2C2E] border rounded-lg p-3 focus:outline-none text-white">
                         <option value="days">Apenas Dias (Ex: 50 dias)</option>
                         <option value="detailed">Anos, Meses e Dias (Detalhado)</option>
@@ -118,6 +200,8 @@
 
         let eventsData = [];
         let viewMode = localStorage.getItem('viewModePref') || 'days'; 
+        let currentOpenEvent = null;
+        let timerInterval = null;
         
         const colors = [
             '#A03C9E', '#5B62F4', '#1E1E1E', '#FF4057', 
@@ -130,23 +214,220 @@
                 const response = await fetch(API_URL);
                 eventsData = await response.json();
                 renderCards();
+                // Se estiver com a tela de detalhes aberta, atualiza os dados dela também
+                if (currentOpenEvent) {
+                    const updated = eventsData.find(e => String(e.id) === String(currentOpenEvent.id));
+                    if (updated) {
+                        currentOpenEvent = updated;
+                        updateDetailScreenValues();
+                    }
+                }
             } catch (error) {
-                document.getElementById('loading-msg').innerText = "Erro ao carregar os dados.";
+                const loadEl = document.getElementById('loading-msg');
+                if (loadEl) loadEl.innerText = "Erro ao carregar os dados.";
             }
         }
 
-        function toggleModal(show) {
-            const modal = document.getElementById('add-modal');
-            if (show) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                renderColorPicker(); 
-            } else {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                document.getElementById('add-form').reset();
-                selectedColor = colors[0];
+        function parseValidDate(dateStr) {
+            if (!dateStr) return new Date();
+            let cleanDateStr = String(dateStr).split('T')[0].trim();
+            let parts = cleanDateStr.split('-');
+            if (parts.length === 3) {
+                return new Date(parts[0], parts[1] - 1, parts[2]); 
             }
+            return new Date(dateStr);
+        }
+
+        function formatFullDateText(dateObj) {
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            return dateObj.toLocaleDateString('pt-BR', options).toLowerCase();
+        }
+
+        function calculateDetailedBreakdown(dateString) {
+            const targetDate = parseValidDate(dateString);
+            const now = new Date();
+            
+            const diffTime = now.getTime() - targetDate.getTime(); // Passado vs Futuro
+            const absDiff = Math.abs(diffTime);
+            
+            const totalSeconds = Math.floor(absDiff / 1000);
+            const totalMinutes = Math.floor(totalSeconds / 60);
+            const totalHours = Math.floor(totalMinutes / 60);
+            const totalDays = Math.floor(totalHours / 24);
+
+            let years = Math.floor(totalDays / 365);
+            let months = Math.floor((totalDays % 365) / 30);
+            let days = Math.floor((totalDays % 365) % 30);
+
+            let hours = totalHours % 24;
+            let minutes = totalMinutes % 60;
+            let seconds = totalSeconds % 60;
+
+            return { years, months, days, hours, minutes, seconds, totalDays, isFuture: diffTime < 0 };
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+            
+            if (eventsData.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 mt-10">Nenhuma data cadastrada ainda.</p>';
+                return;
+            }
+
+            eventsData.sort((a, b) => parseValidDate(a.data).getTime() - parseValidDate(b.data).getTime());
+
+            eventsData.forEach(event => {
+                const targetDate = parseValidDate(event.data);
+                const now = new Date();
+                now.setHours(0,0,0,0);
+                const diffTime = targetDate.getTime() - now.getTime();
+                const isFuture = diffTime > 0;
+                const totalDays = Math.floor(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
+
+                let rightSideHTML = '';
+                const cardColor = event.cor || '#1E1E1E'; 
+
+                if (totalDays === 0) {
+                    rightSideHTML = `
+                        <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[70px]">
+                            <span class="font-bold text-xl leading-none text-white">Hoje</span>
+                            <span class="text-[10px] text-white/80 mt-1 uppercase tracking-wider">Aproveite!</span>
+                        </div>
+                    `;
+                } else if (viewMode === 'detailed') {
+                    const breakdown = calculateDetailedBreakdown(event.data);
+                    let parts = [];
+                    if (breakdown.years > 0) parts.push(`${breakdown.years} ano${breakdown.years > 1 ? 's' : ''}`);
+                    if (breakdown.months > 0) parts.push(`${breakdown.months} mês${breakdown.months > 1 ? 'es' : ''}`);
+                    if (breakdown.days > 0 || parts.length === 0) parts.push(`${breakdown.days} dia${breakdown.days > 1 ? 's' : ''}`);
+                    
+                    const partsHTML = parts.map(p => `<div class="text-[13px] font-bold text-white leading-snug whitespace-nowrap">${p}</div>`).join('');
+                    const labelText = isFuture ? "restantes" : "atrás";
+                    rightSideHTML = `
+                        <div class="text-right flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[95px]">
+                            ${partsHTML}
+                            <div class="text-[9px] text-white/60 mt-1.5 uppercase tracking-wider border-t border-white/10 pt-1 w-full text-center">${labelText}</div>
+                        </div>
+                    `;
+                } else {
+                    const labelText = isFuture ? "dias" : "dias atrás";
+                    rightSideHTML = `
+                        <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[70px]">
+                            <span class="font-bold text-4xl leading-none text-white">${totalDays}</span>
+                            <span class="text-[11px] text-white/80 mt-1 uppercase tracking-wider">${labelText}</span>
+                        </div>
+                    `;
+                }
+
+                const card = document.createElement('div');
+                card.className = "rounded-[24px] p-5 flex items-center shadow-md relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform";
+                card.style.backgroundColor = cardColor;
+                card.onclick = () => openDetailScreen(event);
+
+                card.innerHTML = `
+                    <div class="relative mr-4 shrink-0">
+                        <span class="text-4xl block translate-y-[-2px]">${event.emoji || '📅'}</span>
+                        <div class="absolute -bottom-1 -right-2 bg-black/30 rounded-full w-5 h-5 flex items-center justify-center border border-white/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0 pr-2">
+                        <h3 class="font-bold text-white text-xl truncate">${event.titulo}</h3>
+                        <p class="text-[13px] text-white/80 truncate">${formatFullDateText(targetDate)}</p>
+                    </div>
+                    ${rightSideHTML}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- TELA DE DETALHES ---
+        function openDetailScreen(event) {
+            currentOpenEvent = event;
+            document.getElementById('main-header').classList.add('hidden');
+            document.getElementById('cards-container').classList.add('hidden');
+            document.getElementById('main-footer-btn').classList.add('hidden');
+
+            const detailScreen = document.getElementById('detail-screen');
+            detailScreen.style.backgroundColor = event.cor || '#1E1E1E';
+            detailScreen.classList.remove('hidden');
+            detailScreen.classList.add('flex', 'fade-in');
+
+            document.getElementById('detail-emoji').innerText = event.emoji || '📅';
+            document.getElementById('detail-title').innerText = event.titulo;
+            
+            const targetDate = parseValidDate(event.data);
+            document.getElementById('detail-date-text').innerText = formatFullDateText(targetDate);
+
+            updateDetailScreenValues();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateDetailScreenValues, 1000);
+        }
+
+        function closeDetailScreen() {
+            if (timerInterval) clearInterval(timerInterval);
+            const detailScreen = document.getElementById('detail-screen');
+            detailScreen.classList.add('hidden');
+            detailScreen.classList.remove('flex', 'fade-in');
+
+            document.getElementById('main-header').classList.remove('hidden');
+            document.getElementById('cards-container').classList.remove('hidden');
+            document.getElementById('main-footer-btn').classList.remove('hidden');
+            currentOpenEvent = null;
+        }
+
+        function updateDetailScreenValues() {
+            if (!currentOpenEvent) return;
+            const b = calculateDetailedBreakdown(currentOpenEvent.data);
+            document.getElementById('det-years').innerText = b.years;
+            document.getElementById('det-months').innerText = b.months;
+            document.getElementById('det-days').innerText = b.days;
+            document.getElementById('det-hours').innerText = String(b.hours).padStart(2, '0');
+            document.getElementById('det-minutes').innerText = String(b.minutes).padStart(2, '0');
+            document.getElementById('det-seconds').innerText = String(b.seconds).padStart(2, '0');
+        }
+
+        // --- MODAL ADICIONAR / EDITAR ---
+        function openAddModal() {
+            document.getElementById('edit-id').value = '';
+            document.getElementById('modal-header-title').innerText = "Nova contagem";
+            document.getElementById('delete-container').classList.add('hidden');
+            document.getElementById('add-form').reset();
+            selectedColor = colors[0];
+            renderColorPicker();
+            
+            const modal = document.getElementById('add-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function openEditModal() {
+            if (!currentOpenEvent) return;
+            document.getElementById('edit-id').value = currentOpenEvent.id;
+            document.getElementById('modal-header-title').innerText = "Editar contagem";
+            document.getElementById('emoji-input').value = currentOpenEvent.emoji || '';
+            document.getElementById('title-input').value = currentOpenEvent.titulo || '';
+            
+            // Formatar data para YYYY-MM-DD para o input type="date"
+            let cleanDate = String(currentOpenEvent.data).split('T')[0];
+            document.getElementById('date-input').value = cleanDate;
+
+            selectedColor = currentOpenEvent.cor || colors[0];
+            renderColorPicker();
+            document.getElementById('delete-container').classList.remove('hidden');
+
+            const modal = document.getElementById('add-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeAddModal() {
+            const modal = document.getElementById('add-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
 
         function toggleSettingsModal(show) {
@@ -184,136 +465,19 @@
             });
         }
 
-        function parseValidDate(dateStr) {
-            if (!dateStr) return new Date();
-            let cleanDateStr = String(dateStr).split('T')[0].trim();
-            let parts = cleanDateStr.split('-');
-            if (parts.length === 3) {
-                return new Date(parts[0], parts[1] - 1, parts[2]); 
-            }
-            return new Date(dateStr);
-        }
-
-        function formatFullDateText(dateObj) {
-            const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
-            return dateObj.toLocaleDateString('pt-BR', options).toLowerCase();
-        }
-
-        function calculateTime(dateString) {
-            const targetDate = parseValidDate(dateString);
-            const now = new Date();
-            now.setHours(0,0,0,0);
-            
-            const diffTime = targetDate.getTime() - now.getTime();
-            const isFuture = diffTime > 0;
-            const totalDays = Math.floor(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
-
-            if (totalDays === 0) return { isToday: true, label: "Aproveite!" };
-
-            if (viewMode === 'days') {
-                return {
-                    isDetailed: false,
-                    num: totalDays,
-                    label: isFuture ? "dias" : "dias atrás"
-                };
-            } else {
-                // Cálculo detalhado
-                let years = Math.floor(totalDays / 365);
-                let months = Math.floor((totalDays % 365) / 30);
-                let days = Math.floor((totalDays % 365) % 30);
-                
-                let parts = [];
-                if (years > 0) parts.push(`${years} ano${years > 1 ? 's' : ''}`);
-                if (months > 0) parts.push(`${months} mês${months > 1 ? 'es' : ''}`);
-                // Se não tem anos nem meses, ou se tem dias sobrando, adiciona os dias
-                if (days > 0 || parts.length === 0) {
-                    parts.push(`${days} dia${days > 1 ? 's' : ''}`);
-                }
-                
-                return {
-                    isDetailed: true,
-                    parts: parts, // Retorna um array com as partes para empilhar no HTML
-                    label: isFuture ? "restantes" : "atrás"
-                };
-            }
-        }
-
-        function renderCards() {
-            const container = document.getElementById('cards-container');
-            container.innerHTML = '';
-            
-            if (eventsData.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-500 mt-10">Nenhuma data cadastrada ainda.</p>';
-                return;
-            }
-
-            eventsData.sort((a, b) => parseValidDate(a.data).getTime() - parseValidDate(b.data).getTime());
-
-            eventsData.forEach(event => {
-                const timeInfo = calculateTime(event.data);
-                const dateObj = parseValidDate(event.data);
-                const formattedDate = formatFullDateText(dateObj);
-                const cardColor = event.cor || '#1E1E1E'; 
-
-                let rightSideHTML = '';
-                
-                if (timeInfo.isToday) {
-                    // Layout de quando o evento é HOJE
-                    rightSideHTML = `
-                        <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[70px]">
-                            <span class="font-bold text-xl leading-none text-white">Hoje</span>
-                            <span class="text-[10px] text-white/80 mt-1 uppercase tracking-wider">${timeInfo.label}</span>
-                        </div>
-                    `;
-                } else if (timeInfo.isDetailed) {
-                    // Layout DETALHADO (Empilha Ano, Mês e Dia)
-                    const partsHTML = timeInfo.parts.map(p => `<div class="text-[13px] font-bold text-white leading-snug whitespace-nowrap">${p}</div>`).join('');
-                    rightSideHTML = `
-                        <div class="text-right flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[95px]">
-                            ${partsHTML}
-                            <div class="text-[9px] text-white/60 mt-1.5 uppercase tracking-wider border-t border-white/10 pt-1 w-full text-center">${timeInfo.label}</div>
-                        </div>
-                    `;
-                } else {
-                    // Layout de DIAS (Número Gigante)
-                    rightSideHTML = `
-                        <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[70px]">
-                            <span class="font-bold text-4xl leading-none text-white">${timeInfo.num}</span>
-                            <span class="text-[11px] text-white/80 mt-1 uppercase tracking-wider">${timeInfo.label}</span>
-                        </div>
-                    `;
-                }
-
-                const card = document.createElement('div');
-                card.className = "rounded-[24px] p-5 flex items-center shadow-md relative overflow-hidden";
-                card.style.backgroundColor = cardColor;
-
-                card.innerHTML = `
-                    <div class="relative mr-4 shrink-0">
-                        <span class="text-4xl block translate-y-[-2px]">${event.emoji || '📅'}</span>
-                        <div class="absolute -bottom-1 -right-2 bg-black/30 rounded-full w-5 h-5 flex items-center justify-center border border-white/20">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="flex-1 min-w-0 pr-2">
-                        <h3 class="font-bold text-white text-xl truncate">${event.titulo}</h3>
-                        <p class="text-[13px] text-white/80 truncate">${formattedDate}</p>
-                    </div>
-                    ${rightSideHTML}
-                `;
-                container.appendChild(card);
-            });
-        }
-
+        // --- SALVAR (CRIAR OU EDITAR) ---
         document.getElementById('add-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-salvar');
             btn.innerText = "Salvando...";
             btn.disabled = true;
 
-            const newData = {
+            const editId = document.getElementById('edit-id').value;
+            const actionType = editId ? 'update' : 'create';
+
+            const payload = {
+                action: actionType,
+                id: editId || undefined,
                 emoji: document.getElementById('emoji-input').value,
                 titulo: document.getElementById('title-input').value,
                 data: document.getElementById('date-input').value,
@@ -323,10 +487,14 @@
             try {
                 await fetch(API_URL, {
                     method: 'POST',
-                    body: JSON.stringify(newData)
+                    body: JSON.stringify(payload)
                 });
                 await fetchDatas();
-                toggleModal(false);
+                closeAddModal();
+                if (editId) {
+                    // Se estava editando na tela de detalhes, fecha ela para recalcular a visualização
+                    closeDetailScreen();
+                }
             } catch (error) {
                 alert("Erro ao salvar. Tente novamente.");
             } finally {
@@ -335,8 +503,33 @@
             }
         });
 
-        // Inicia
+        // --- EXCLUIR ---
+        async function deleteCurrentEvent() {
+            if (!currentOpenEvent) return;
+            if (!confirm("Tem certeza que deseja excluir esta contagem?")) return;
+
+            const payload = {
+                action: 'delete',
+                id: currentOpenEvent.id
+            };
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                closeAddModal();
+                closeDetailScreen();
+                await fetchDatas();
+            } catch (error) {
+                alert("Erro ao excluir. Tente novamente.");
+            }
+        }
+
+        // Inicia a aplicação
         fetchDatas();
+        // Atualiza a lista a cada minuto para manter os dias corretos
+        setInterval(fetchDatas, 60000);
     </script>
 </body>
 </html>
