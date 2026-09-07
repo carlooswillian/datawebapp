@@ -6,24 +6,28 @@
     <title>Datas Importantes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { -webkit-tap-highlight-color: transparent; }
-        .card-transition { transition: all 0.3s ease; }
-        .card-transition:active { transform: scale(0.98); }
+        body { 
+            -webkit-tap-highlight-color: transparent; 
+            background-color: #000000; /* Fundo totalmente escuro */
+            color: #ffffff;
+        }
         .modal-enter { animation: slideUp 0.3s ease-out forwards; }
         @keyframes slideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
         ::-webkit-scrollbar { display: none; }
+        
+        /* Ajuste nativo para o input de data ficar escuro */
+        ::-webkit-calendar-picker-indicator { filter: invert(1); }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen pb-24">
+<body class="font-sans antialiased min-h-screen pb-32">
 
-    <!-- Header com Ícone de Configurações -->
-    <header class="bg-white shadow-sm sticky top-0 z-10 px-6 py-4 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-indigo-600">Datas Importantes</h1>
-        <!-- Alterado para abrir o modal de configurações -->
-        <button onclick="toggleSettingsModal(true)" class="text-gray-400 hover:text-indigo-600 transition-colors p-2" title="Configurações">
+    <!-- Header Simples -->
+    <header class="px-6 py-4 flex justify-between items-center sticky top-0 bg-black/80 backdrop-blur-md z-10">
+        <h1 class="text-2xl font-bold text-white tracking-wide">Nossas Datas</h1>
+        <button onclick="toggleSettingsModal(true)" class="text-gray-400 hover:text-white p-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -31,77 +35,108 @@
         </button>
     </header>
 
-    <!-- Lista de Cards -->
+    <!-- Container dos Cards -->
     <main id="cards-container" class="p-4 space-y-4">
         <p class="text-center text-gray-500 mt-10" id="loading-msg">Carregando datas...</p>
     </main>
 
-    <!-- Botão Flutuante (FAB) -->
-    <button onclick="toggleModal(true)" class="fixed bottom-6 right-6 bg-indigo-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-3xl card-transition z-20">
-        +
-    </button>
+    <!-- Botão Inferior (Pílula Larga) -->
+    <div class="fixed bottom-6 w-full px-4 z-20 flex justify-center">
+        <button onclick="toggleModal(true)" class="w-full max-w-sm bg-[#3A7CF7] text-white font-bold py-4 rounded-full shadow-lg flex items-center justify-center text-lg active:scale-95 transition-transform">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Nova contagem regressiva
+        </button>
+    </div>
 
     <!-- Modal de Adicionar Data -->
-    <div id="add-modal" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden flex items-end justify-center">
-        <div class="bg-white w-full max-w-md rounded-t-3xl p-6 modal-enter relative">
-            <button onclick="toggleModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">X</button>
-            <h2 class="text-xl font-bold mb-6 text-gray-800">Nova Data Especial</h2>
-            
-            <form id="add-form" class="space-y-4">
+    <div id="add-modal" class="fixed inset-0 bg-black z-30 hidden flex-col modal-enter">
+        <div class="flex justify-between items-center p-4 border-b border-gray-800 bg-[#121212]">
+            <button onclick="toggleModal(false)" class="bg-[#2C2C2E] rounded-full p-2 text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-white">Nova contagem</h2>
+            <button type="submit" form="add-form" id="btn-salvar" class="bg-[#1DA1F2] text-white font-bold py-1.5 px-4 rounded-full text-sm">
+                Salvar
+            </button>
+        </div>
+        
+        <div class="p-4 overflow-y-auto flex-1 bg-black">
+            <form id="add-form" class="space-y-6">
+                <!-- Título e Emoji -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Emoji</label>
-                    <input type="text" id="emoji-input" placeholder="✈️" maxlength="2" class="mt-1 w-16 text-center text-2xl border-gray-300 border rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                    <label class="block text-sm text-gray-400 mb-2 ml-2">Escolha um título e emoji</label>
+                    <div class="bg-[#1C1C1E] rounded-2xl p-2 flex items-center">
+                        <input type="text" id="emoji-input" placeholder="📅" maxlength="2" class="w-12 h-12 bg-[#2C2C2E] text-center text-2xl rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-white" required>
+                        <input type="text" id="title-input" placeholder="Ex: Viagem para Porto Seguro" class="flex-1 bg-transparent border-none focus:outline-none text-white px-4 placeholder-gray-500" required>
+                    </div>
                 </div>
+
+                <!-- Data -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Título</label>
-                    <input type="text" id="title-input" placeholder="Ex: Viagem para Porto Seguro" class="mt-1 w-full border-gray-300 border rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500" required>
+                    <label class="block text-sm text-gray-400 mb-2 ml-2">Escolha uma data</label>
+                    <div class="bg-[#1C1C1E] rounded-2xl p-4">
+                        <input type="date" id="date-input" class="w-full bg-transparent border-none focus:outline-none text-white text-lg" required>
+                    </div>
                 </div>
+
+                <!-- Cores -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Data</label>
-                    <input type="date" id="date-input" class="mt-1 w-full border-gray-300 border rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500" required>
+                    <label class="block text-sm text-gray-400 mb-2 ml-2">Escolha uma cor</label>
+                    <div class="bg-[#1C1C1E] rounded-2xl p-4">
+                        <div class="flex flex-wrap gap-3 justify-center" id="color-picker-container">
+                            <!-- Cores geradas pelo JS -->
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl mt-4 card-transition" id="btn-salvar">
-                    Salvar Data
-                </button>
             </form>
         </div>
     </div>
 
-    <!-- Modal de Configurações -->
-    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden flex items-end justify-center">
-        <div class="bg-white w-full max-w-md rounded-t-3xl p-6 modal-enter relative">
+    <!-- Modal de Configurações (Mantido do anterior, adaptado para Dark Mode) -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/90 z-30 hidden flex items-end justify-center">
+        <div class="bg-[#1C1C1E] w-full max-w-md rounded-t-3xl p-6 modal-enter relative border-t border-gray-800">
             <button onclick="toggleSettingsModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">X</button>
-            <h2 class="text-xl font-bold mb-6 text-gray-800">Configurações</h2>
+            <h2 class="text-xl font-bold mb-6 text-white">Configurações</h2>
             
             <div class="space-y-6">
-                <!-- Configuração: Formato da Contagem -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Formato da contagem</label>
-                    <select id="view-mode-select" onchange="changeViewMode(this.value)" class="w-full border-gray-300 border rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-700">
-                        <option value="days">Apenas Dias (Ex: Faltam 50 dias)</option>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Formato da contagem</label>
+                    <select id="view-mode-select" onchange="changeViewMode(this.value)" class="w-full border-gray-700 bg-[#2C2C2E] border rounded-lg p-3 focus:outline-none text-white">
+                        <option value="days">Apenas Dias (Ex: 50 dias)</option>
                         <option value="detailed">Anos, Meses e Dias (Detalhado)</option>
                     </select>
                 </div>
-
-                <!-- Espaço para futuras configurações (Placeholder) -->
-                <div class="py-4 border-t border-gray-100">
-                    <p class="text-sm text-center text-gray-400 italic">Mais opções em breve...</p>
-                </div>
             </div>
 
-            <button onclick="toggleSettingsModal(false)" class="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl mt-4 card-transition hover:bg-gray-200">
+            <button onclick="toggleSettingsModal(false)" class="w-full bg-[#2C2C2E] text-white font-bold py-3 rounded-xl mt-8">
                 Fechar
             </button>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwb7wzDPK59bm_IPQEBq3aJCiK9xYY3x1i1alunem9GYeV4oPGjuaw3k87gKfN4CM77/exec";
+        // COLOQUE SUA NOVA URL DO APPS SCRIPT AQUI
+        const API_URL = "SUA_NOVA_URL_AQUI";
 
         let eventsData = [];
-        
-        // Puxa a preferência salva no celular, se não houver, usa 'days' como padrão
         let viewMode = localStorage.getItem('viewModePref') || 'days'; 
+        
+        // Paleta de Cores baseada na sua imagem
+        const colors = [
+            '#A03C9E', // Roxo (Namoro)
+            '#5B62F4', // Azul (Cabelo)
+            '#1E1E1E', // Preto (Casamento)
+            '#FF4057', // Vermelho (Dia Feliz)
+            '#5D9C59', // Verde Escuro
+            '#FF9500', // Laranja
+            '#34C759', // Verde Claro
+            '#5AC8FA'  // Ciano
+        ];
+        let selectedColor = colors[0]; // Padrão
 
         async function fetchDatas() {
             try {
@@ -113,22 +148,23 @@
             }
         }
 
-        // Controla o pop-up de Adicionar Data
         function toggleModal(show) {
             const modal = document.getElementById('add-modal');
             if (show) {
                 modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                renderColorPicker(); // Monta as bolinhas de cor
             } else {
                 modal.classList.add('hidden');
+                modal.classList.remove('flex');
                 document.getElementById('add-form').reset();
+                selectedColor = colors[0];
             }
         }
 
-        // Controla o pop-up de Configurações
         function toggleSettingsModal(show) {
             const modal = document.getElementById('settings-modal');
             if (show) {
-                // Atualiza o select para mostrar a opção que está em uso
                 document.getElementById('view-mode-select').value = viewMode;
                 modal.classList.remove('hidden');
             } else {
@@ -136,19 +172,34 @@
             }
         }
 
-        // Função que muda a visualização quando o usuário escolhe no Select
         function changeViewMode(newMode) {
             viewMode = newMode;
-            // Salva a escolha no celular da pessoa
             localStorage.setItem('viewModePref', newMode);
-            // Atualiza os cards imediatamente
             renderCards();
+        }
+
+        function selectColor(color) {
+            selectedColor = color;
+            renderColorPicker();
+        }
+
+        function renderColorPicker() {
+            const container = document.getElementById('color-picker-container');
+            container.innerHTML = '';
+            colors.forEach(color => {
+                const isSelected = selectedColor === color;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => selectColor(color);
+                btn.className = `w-12 h-12 rounded-full transition-all ${isSelected ? 'ring-4 ring-white scale-110' : 'ring-2 ring-transparent'}`;
+                btn.style.backgroundColor = color;
+                container.appendChild(btn);
+            });
         }
 
         function parseValidDate(dateStr) {
             if (!dateStr) return new Date();
             let cleanDateStr = String(dateStr).split('T')[0].trim();
-            
             let parts = cleanDateStr.split('-');
             if (parts.length === 3) {
                 return new Date(parts[0], parts[1] - 1, parts[2]); 
@@ -156,9 +207,14 @@
             return new Date(dateStr);
         }
 
+        // Formata data igual à imagem: "dom., 30 de abr. de 2023"
+        function formatFullDateText(dateObj) {
+            const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
+            return dateObj.toLocaleDateString('pt-BR', options).toLowerCase();
+        }
+
         function calculateTime(dateString) {
             const targetDate = parseValidDate(dateString);
-            
             const now = new Date();
             now.setHours(0,0,0,0);
             
@@ -166,27 +222,20 @@
             const isFuture = diffTime > 0;
             const totalDays = Math.floor(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
 
-            if (totalDays === 0) return { text: "É hoje! 🎉", class: "text-indigo-600 bg-indigo-50" };
+            if (totalDays === 0) return { num: "Hoje", label: "Aproveite!" };
 
             if (viewMode === 'days') {
                 return {
-                    text: isFuture ? `Faltam ${totalDays} dias` : `Há ${totalDays} dias`,
-                    class: isFuture ? "text-green-600 bg-green-50" : "text-gray-500 bg-gray-100"
+                    num: totalDays,
+                    label: isFuture ? "dias" : "dias atrás"
                 };
             } else {
                 let years = Math.floor(totalDays / 365);
                 let months = Math.floor((totalDays % 365) / 30);
-                let days = Math.floor((totalDays % 365) % 30);
                 
-                let parts = [];
-                if (years > 0) parts.push(`${years} ano${years > 1 ? 's' : ''}`);
-                if (months > 0) parts.push(`${months} mês${months > 1 ? 'es' : ''}`);
-                if (days > 0 || parts.length === 0) parts.push(`${days} dia${days > 1 ? 's' : ''}`);
-                
-                return {
-                    text: isFuture ? `Falta: ${parts.join(', ')}` : `Passou: ${parts.join(', ')}`,
-                    class: isFuture ? "text-green-600 bg-green-50" : "text-gray-500 bg-gray-100"
-                };
+                if (years > 0) return { num: years, label: isFuture ? "anos restantes" : "anos atrás" };
+                if (months > 0) return { num: months, label: isFuture ? "meses restantes" : "meses atrás" };
+                return { num: totalDays, label: isFuture ? "dias" : "dias atrás" };
             }
         }
 
@@ -204,21 +253,30 @@
             eventsData.forEach(event => {
                 const timeInfo = calculateTime(event.data);
                 const dateObj = parseValidDate(event.data);
-                const formattedDate = dateObj.toLocaleDateString('pt-BR');
+                const formattedDate = formatFullDateText(dateObj);
+                const cardColor = event.cor || '#1E1E1E'; // Cor salva ou preta padrão
 
                 const card = document.createElement('div');
-                card.className = "bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center";
+                card.className = "rounded-[24px] p-5 flex items-center shadow-md relative overflow-hidden";
+                card.style.backgroundColor = cardColor;
 
+                // Layout replicando exatamente o da foto
                 card.innerHTML = `
-                    <div class="text-4xl mr-4">${event.emoji || '📅'}</div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-gray-800 text-lg">${event.titulo}</h3>
-                        <p class="text-sm text-gray-400">${formattedDate}</p>
+                    <div class="relative mr-4 shrink-0">
+                        <span class="text-4xl block translate-y-[-2px]">${event.emoji || '📅'}</span>
+                        <div class="absolute -bottom-1 -right-2 bg-black/30 rounded-full w-5 h-5 flex items-center justify-center border border-white/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <span class="font-bold text-sm ${timeInfo.class} py-1 px-3 rounded-full">
-                            ${timeInfo.text}
-                        </span>
+                    <div class="flex-1 min-w-0 pr-2">
+                        <h3 class="font-bold text-white text-xl truncate">${event.titulo}</h3>
+                        <p class="text-[13px] text-white/80 truncate">${formattedDate}</p>
+                    </div>
+                    <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[70px]">
+                        <span class="font-bold text-4xl leading-none text-white">${timeInfo.num}</span>
+                        <span class="text-[11px] text-white/80 mt-1 uppercase tracking-wider">${timeInfo.label}</span>
                     </div>
                 `;
                 container.appendChild(card);
@@ -234,7 +292,8 @@
             const newData = {
                 emoji: document.getElementById('emoji-input').value,
                 titulo: document.getElementById('title-input').value,
-                data: document.getElementById('date-input').value
+                data: document.getElementById('date-input').value,
+                cor: selectedColor // Enviando a cor selecionada
             };
 
             try {
@@ -247,12 +306,12 @@
             } catch (error) {
                 alert("Erro ao salvar. Tente novamente.");
             } finally {
-                btn.innerText = "Salvar Data";
+                btn.innerText = "Salvar";
                 btn.disabled = false;
             }
         });
 
-        // Inicia carregando os dados
+        // Inicia
         fetchDatas();
     </script>
 </body>
