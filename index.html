@@ -22,8 +22,8 @@
     <!-- Header com Ícone de Configurações -->
     <header class="bg-white shadow-sm sticky top-0 z-10 px-6 py-4 flex justify-between items-center">
         <h1 class="text-2xl font-bold text-indigo-600">Datas Importantes</h1>
-        <button onclick="toggleViewMode()" class="text-gray-400 hover:text-indigo-600 transition-colors p-2" title="Mudar formato da contagem">
-            <!-- Ícone de Engrenagem -->
+        <!-- Alterado para abrir o modal de configurações -->
+        <button onclick="toggleSettingsModal(true)" class="text-gray-400 hover:text-indigo-600 transition-colors p-2" title="Configurações">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -67,12 +67,41 @@
         </div>
     </div>
 
+    <!-- Modal de Configurações -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden flex items-end justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-3xl p-6 modal-enter relative">
+            <button onclick="toggleSettingsModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">X</button>
+            <h2 class="text-xl font-bold mb-6 text-gray-800">Configurações</h2>
+            
+            <div class="space-y-6">
+                <!-- Configuração: Formato da Contagem -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Formato da contagem</label>
+                    <select id="view-mode-select" onchange="changeViewMode(this.value)" class="w-full border-gray-300 border rounded-lg p-3 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-gray-700">
+                        <option value="days">Apenas Dias (Ex: Faltam 50 dias)</option>
+                        <option value="detailed">Anos, Meses e Dias (Detalhado)</option>
+                    </select>
+                </div>
+
+                <!-- Espaço para futuras configurações (Placeholder) -->
+                <div class="py-4 border-t border-gray-100">
+                    <p class="text-sm text-center text-gray-400 italic">Mais opções em breve...</p>
+                </div>
+            </div>
+
+            <button onclick="toggleSettingsModal(false)" class="w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl mt-4 card-transition hover:bg-gray-200">
+                Fechar
+            </button>
+        </div>
+    </div>
+
     <script>
-        // COLOQUE A URL DO SEU GOOGLE APPS SCRIPT AQUI
         const API_URL = "https://script.google.com/macros/s/AKfycbwb7wzDPK59bm_IPQEBq3aJCiK9xYY3x1i1alunem9GYeV4oPGjuaw3k87gKfN4CM77/exec";
 
         let eventsData = [];
-        let viewMode = 'days'; // 'days' ou 'detailed'
+        
+        // Puxa a preferência salva no celular, se não houver, usa 'days' como padrão
+        let viewMode = localStorage.getItem('viewModePref') || 'days'; 
 
         async function fetchDatas() {
             try {
@@ -84,6 +113,7 @@
             }
         }
 
+        // Controla o pop-up de Adicionar Data
         function toggleModal(show) {
             const modal = document.getElementById('add-modal');
             if (show) {
@@ -94,22 +124,33 @@
             }
         }
 
-        // Alterna a visualização ao clicar na engrenagem
-        function toggleViewMode() {
-            viewMode = viewMode === 'days' ? 'detailed' : 'days';
+        // Controla o pop-up de Configurações
+        function toggleSettingsModal(show) {
+            const modal = document.getElementById('settings-modal');
+            if (show) {
+                // Atualiza o select para mostrar a opção que está em uso
+                document.getElementById('view-mode-select').value = viewMode;
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Função que muda a visualização quando o usuário escolhe no Select
+        function changeViewMode(newMode) {
+            viewMode = newMode;
+            // Salva a escolha no celular da pessoa
+            localStorage.setItem('viewModePref', newMode);
+            // Atualiza os cards imediatamente
             renderCards();
         }
 
-        // Função robusta para ler qualquer formato de data que venha da planilha
         function parseValidDate(dateStr) {
             if (!dateStr) return new Date();
-            // Limpa o T00:00:00 ou informações de fuso que vêm do Google Sheets
             let cleanDateStr = String(dateStr).split('T')[0].trim();
             
-            // Separa os componentes (ano, mês, dia)
             let parts = cleanDateStr.split('-');
             if (parts.length === 3) {
-                // Ao criar dessa forma, o JavaScript não sofre interferência do fuso horário local
                 return new Date(parts[0], parts[1] - 1, parts[2]); 
             }
             return new Date(dateStr);
@@ -133,7 +174,6 @@
                     class: isFuture ? "text-green-600 bg-green-50" : "text-gray-500 bg-gray-100"
                 };
             } else {
-                // Cálculo detalhado
                 let years = Math.floor(totalDays / 365);
                 let months = Math.floor((totalDays % 365) / 30);
                 let days = Math.floor((totalDays % 365) % 30);
@@ -159,18 +199,14 @@
                 return;
             }
 
-            // Ordena os eventos pela data (do mais antigo para o mais futuro)
             eventsData.sort((a, b) => parseValidDate(a.data).getTime() - parseValidDate(b.data).getTime());
 
             eventsData.forEach(event => {
                 const timeInfo = calculateTime(event.data);
-                
-                // Formata a data para leitura (DD/MM/YYYY)
                 const dateObj = parseValidDate(event.data);
                 const formattedDate = dateObj.toLocaleDateString('pt-BR');
 
                 const card = document.createElement('div');
-                // Removida as classes "cursor-pointer" e "card-transition" pois agora não são mais clicáveis
                 card.className = "bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center";
 
                 card.innerHTML = `
@@ -189,7 +225,6 @@
             });
         }
 
-        // Envio do formulário
         document.getElementById('add-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-salvar');
@@ -217,7 +252,7 @@
             }
         });
 
-        // Inicia
+        // Inicia carregando os dados
         fetchDatas();
     </script>
 </body>
