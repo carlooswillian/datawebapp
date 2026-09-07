@@ -8,7 +8,7 @@
     <style>
         body { 
             -webkit-tap-highlight-color: transparent; 
-            background-color: #000000; /* Fundo totalmente escuro */
+            background-color: #000000;
             color: #ffffff;
         }
         .modal-enter { animation: slideUp 0.3s ease-out forwards; }
@@ -17,14 +17,12 @@
             to { transform: translateY(0); }
         }
         ::-webkit-scrollbar { display: none; }
-        
-        /* Ajuste nativo para o input de data ficar escuro */
         ::-webkit-calendar-picker-indicator { filter: invert(1); }
     </style>
 </head>
 <body class="font-sans antialiased min-h-screen pb-32">
 
-    <!-- Header Simples -->
+    <!-- Header -->
     <header class="px-6 py-4 flex justify-between items-center sticky top-0 bg-black/80 backdrop-blur-md z-10">
         <h1 class="text-2xl font-bold text-white tracking-wide">Nossas Datas</h1>
         <button onclick="toggleSettingsModal(true)" class="text-gray-400 hover:text-white p-2">
@@ -40,7 +38,7 @@
         <p class="text-center text-gray-500 mt-10" id="loading-msg">Carregando datas...</p>
     </main>
 
-    <!-- Botão Inferior (Pílula Larga) -->
+    <!-- Botão Inferior -->
     <div class="fixed bottom-6 w-full px-4 z-20 flex justify-center">
         <button onclick="toggleModal(true)" class="w-full max-w-sm bg-[#3A7CF7] text-white font-bold py-4 rounded-full shadow-lg flex items-center justify-center text-lg active:scale-95 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -66,7 +64,6 @@
         
         <div class="p-4 overflow-y-auto flex-1 bg-black">
             <form id="add-form" class="space-y-6">
-                <!-- Título e Emoji -->
                 <div>
                     <label class="block text-sm text-gray-400 mb-2 ml-2">Escolha um título e emoji</label>
                     <div class="bg-[#1C1C1E] rounded-2xl p-2 flex items-center">
@@ -75,7 +72,6 @@
                     </div>
                 </div>
 
-                <!-- Data -->
                 <div>
                     <label class="block text-sm text-gray-400 mb-2 ml-2">Escolha uma data</label>
                     <div class="bg-[#1C1C1E] rounded-2xl p-4">
@@ -83,12 +79,10 @@
                     </div>
                 </div>
 
-                <!-- Cores -->
                 <div>
                     <label class="block text-sm text-gray-400 mb-2 ml-2">Escolha uma cor</label>
                     <div class="bg-[#1C1C1E] rounded-2xl p-4">
                         <div class="flex flex-wrap gap-3 justify-center" id="color-picker-container">
-                            <!-- Cores geradas pelo JS -->
                         </div>
                     </div>
                 </div>
@@ -96,7 +90,7 @@
         </div>
     </div>
 
-    <!-- Modal de Configurações (Mantido do anterior, adaptado para Dark Mode) -->
+    <!-- Modal de Configurações -->
     <div id="settings-modal" class="fixed inset-0 bg-black/90 z-30 hidden flex items-end justify-center">
         <div class="bg-[#1C1C1E] w-full max-w-md rounded-t-3xl p-6 modal-enter relative border-t border-gray-800">
             <button onclick="toggleSettingsModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">X</button>
@@ -112,31 +106,24 @@
                 </div>
             </div>
 
-            <button onclick="toggleSettingsModal(false)" class="w-full bg-[#2C2C2E] text-white font-bold py-3 rounded-xl mt-8">
+            <button onclick="toggleSettingsModal(false)" class="w-full bg-[#2C2C2E] text-white font-bold py-3 rounded-xl mt-8 active:scale-95 transition-transform">
                 Fechar
             </button>
         </div>
     </div>
 
     <script>
-        // COLOQUE SUA NOVA URL DO APPS SCRIPT AQUI
+        // COLOQUE SUA URL DO APPS SCRIPT AQUI
         const API_URL = "https://script.google.com/macros/s/AKfycbwb7wzDPK59bm_IPQEBq3aJCiK9xYY3x1i1alunem9GYeV4oPGjuaw3k87gKfN4CM77/exec";
 
         let eventsData = [];
         let viewMode = localStorage.getItem('viewModePref') || 'days'; 
         
-        // Paleta de Cores baseada na sua imagem
         const colors = [
-            '#A03C9E', // Roxo (Namoro)
-            '#5B62F4', // Azul (Cabelo)
-            '#1E1E1E', // Preto (Casamento)
-            '#FF4057', // Vermelho (Dia Feliz)
-            '#5D9C59', // Verde Escuro
-            '#FF9500', // Laranja
-            '#34C759', // Verde Claro
-            '#5AC8FA'  // Ciano
+            '#A03C9E', '#5B62F4', '#1E1E1E', '#FF4057', 
+            '#5D9C59', '#FF9500', '#34C759', '#5AC8FA'
         ];
-        let selectedColor = colors[0]; // Padrão
+        let selectedColor = colors[0]; 
 
         async function fetchDatas() {
             try {
@@ -153,7 +140,7 @@
             if (show) {
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
-                renderColorPicker(); // Monta as bolinhas de cor
+                renderColorPicker(); 
             } else {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
@@ -207,7 +194,6 @@
             return new Date(dateStr);
         }
 
-        // Formata data igual à imagem: "dom., 30 de abr. de 2023"
         function formatFullDateText(dateObj) {
             const options = { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' };
             return dateObj.toLocaleDateString('pt-BR', options).toLowerCase();
@@ -222,20 +208,33 @@
             const isFuture = diffTime > 0;
             const totalDays = Math.floor(Math.abs(diffTime) / (1000 * 60 * 60 * 24));
 
-            if (totalDays === 0) return { num: "Hoje", label: "Aproveite!" };
+            if (totalDays === 0) return { isToday: true, label: "Aproveite!" };
 
             if (viewMode === 'days') {
                 return {
+                    isDetailed: false,
                     num: totalDays,
                     label: isFuture ? "dias" : "dias atrás"
                 };
             } else {
+                // Cálculo detalhado
                 let years = Math.floor(totalDays / 365);
                 let months = Math.floor((totalDays % 365) / 30);
+                let days = Math.floor((totalDays % 365) % 30);
                 
-                if (years > 0) return { num: years, label: isFuture ? "anos restantes" : "anos atrás" };
-                if (months > 0) return { num: months, label: isFuture ? "meses restantes" : "meses atrás" };
-                return { num: totalDays, label: isFuture ? "dias" : "dias atrás" };
+                let parts = [];
+                if (years > 0) parts.push(`${years} ano${years > 1 ? 's' : ''}`);
+                if (months > 0) parts.push(`${months} mês${months > 1 ? 'es' : ''}`);
+                // Se não tem anos nem meses, ou se tem dias sobrando, adiciona os dias
+                if (days > 0 || parts.length === 0) {
+                    parts.push(`${days} dia${days > 1 ? 's' : ''}`);
+                }
+                
+                return {
+                    isDetailed: true,
+                    parts: parts, // Retorna um array com as partes para empilhar no HTML
+                    label: isFuture ? "restantes" : "atrás"
+                };
             }
         }
 
@@ -254,13 +253,41 @@
                 const timeInfo = calculateTime(event.data);
                 const dateObj = parseValidDate(event.data);
                 const formattedDate = formatFullDateText(dateObj);
-                const cardColor = event.cor || '#1E1E1E'; // Cor salva ou preta padrão
+                const cardColor = event.cor || '#1E1E1E'; 
+
+                let rightSideHTML = '';
+                
+                if (timeInfo.isToday) {
+                    // Layout de quando o evento é HOJE
+                    rightSideHTML = `
+                        <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[70px]">
+                            <span class="font-bold text-xl leading-none text-white">Hoje</span>
+                            <span class="text-[10px] text-white/80 mt-1 uppercase tracking-wider">${timeInfo.label}</span>
+                        </div>
+                    `;
+                } else if (timeInfo.isDetailed) {
+                    // Layout DETALHADO (Empilha Ano, Mês e Dia)
+                    const partsHTML = timeInfo.parts.map(p => `<div class="text-[13px] font-bold text-white leading-snug whitespace-nowrap">${p}</div>`).join('');
+                    rightSideHTML = `
+                        <div class="text-right flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[95px]">
+                            ${partsHTML}
+                            <div class="text-[9px] text-white/60 mt-1.5 uppercase tracking-wider border-t border-white/10 pt-1 w-full text-center">${timeInfo.label}</div>
+                        </div>
+                    `;
+                } else {
+                    // Layout de DIAS (Número Gigante)
+                    rightSideHTML = `
+                        <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[70px]">
+                            <span class="font-bold text-4xl leading-none text-white">${timeInfo.num}</span>
+                            <span class="text-[11px] text-white/80 mt-1 uppercase tracking-wider">${timeInfo.label}</span>
+                        </div>
+                    `;
+                }
 
                 const card = document.createElement('div');
                 card.className = "rounded-[24px] p-5 flex items-center shadow-md relative overflow-hidden";
                 card.style.backgroundColor = cardColor;
 
-                // Layout replicando exatamente o da foto
                 card.innerHTML = `
                     <div class="relative mr-4 shrink-0">
                         <span class="text-4xl block translate-y-[-2px]">${event.emoji || '📅'}</span>
@@ -274,10 +301,7 @@
                         <h3 class="font-bold text-white text-xl truncate">${event.titulo}</h3>
                         <p class="text-[13px] text-white/80 truncate">${formattedDate}</p>
                     </div>
-                    <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[70px]">
-                        <span class="font-bold text-4xl leading-none text-white">${timeInfo.num}</span>
-                        <span class="text-[11px] text-white/80 mt-1 uppercase tracking-wider">${timeInfo.label}</span>
-                    </div>
+                    ${rightSideHTML}
                 `;
                 container.appendChild(card);
             });
@@ -293,7 +317,7 @@
                 emoji: document.getElementById('emoji-input').value,
                 titulo: document.getElementById('title-input').value,
                 data: document.getElementById('date-input').value,
-                cor: selectedColor // Enviando a cor selecionada
+                cor: selectedColor 
             };
 
             try {
