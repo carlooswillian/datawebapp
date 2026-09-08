@@ -39,7 +39,7 @@
     </header>
 
     <!-- Tela Principal: Container dos Cards -->
-    <main id="cards-container" class="p-4 space-y-4">
+    <main id="cards-container" class="p-4 space-y-3">
         <p class="text-center text-gray-500 mt-10" id="loading-msg">Carregando datas...</p>
     </main>
 
@@ -49,11 +49,11 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Nova contagem regressiva
+            Nova contagem
         </button>
     </div>
 
-    <!-- TELA DE DETALHES DO CARD (Estilo Referência) -->
+    <!-- TELA DE DETALHES DO CARD -->
     <div id="detail-screen" class="fixed inset-0 z-30 hidden flex-col transition-all">
         <!-- Header Detalhes -->
         <div class="px-6 py-4 flex justify-between items-center bg-black/20 backdrop-blur-md">
@@ -71,50 +71,45 @@
 
         <!-- Conteúdo Detalhado Central -->
         <div class="flex-1 flex flex-col items-center justify-center p-6 text-center -mt-10">
-            <!-- Emoji com círculo em volta -->
+            <!-- Emoji com círculo em volta (Sem o Check) -->
             <div id="detail-emoji-container" class="w-32 h-32 rounded-full flex items-center justify-center shadow-xl relative mb-6 border-4 border-white/10">
                 <span id="detail-emoji" class="text-6xl">❤️</span>
-                <div class="absolute bottom-1 right-2 bg-black/40 rounded-full w-8 h-8 flex items-center justify-center border border-white/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    </svg>
-                </div>
             </div>
 
             <!-- Título e Data Completa -->
             <h2 id="detail-title" class="text-3xl font-bold text-white mb-1">Namoro</h2>
-            <p id="detail-date-text" class="text-sm text-white/80 mb-8 capitalize">domingo, 30 de abril de 2023</p>
+            <p id="detail-date-text" class="text-sm text-white/90 mb-8 capitalize">domingo, 30 de abril de 2023</p>
 
             <!-- Bloco 1: Anos, Meses e Dias -->
             <div class="bg-black/25 backdrop-blur-md rounded-2xl p-4 w-full max-w-sm mb-4 border border-white/10 shadow-lg flex justify-around items-center">
                 <div class="text-center px-2">
                     <span id="det-years" class="text-3xl font-bold text-white block leading-tight">3</span>
-                    <span class="text-xs text-white/70 uppercase tracking-wider">anos</span>
+                    <span class="text-xs text-white/70 uppercase tracking-wider font-medium">anos</span>
                 </div>
                 <div class="h-8 w-px bg-white/20"></div>
                 <div class="text-center px-2">
                     <span id="det-months" class="text-3xl font-bold text-white block leading-tight">4</span>
-                    <span class="text-xs text-white/70 uppercase tracking-wider">meses</span>
+                    <span class="text-xs text-white/70 uppercase tracking-wider font-medium">meses</span>
                 </div>
                 <div class="h-8 w-px bg-white/20"></div>
                 <div class="text-center px-2">
                     <span id="det-days" class="text-3xl font-bold text-white block leading-tight">8</span>
-                    <span class="text-xs text-white/70 uppercase tracking-wider">dias</span>
+                    <span class="text-xs text-white/70 uppercase tracking-wider font-medium">dias</span>
                 </div>
             </div>
 
-            <!-- Bloco 2: Horas, Minutos e Segundos (Tempo Real) -->
+            <!-- Bloco 2: Horas, Minutos e Segundos -->
             <div class="bg-black/25 backdrop-blur-md rounded-2xl p-4 w-full max-w-sm border border-white/10 shadow-lg flex justify-around items-center">
                 <div class="text-center px-2">
                     <span id="det-hours" class="text-2xl font-bold text-white block leading-tight">10</span>
                     <span class="text-[10px] text-white/70 uppercase tracking-wider">horas</span>
                 </div>
-                <span class="text-xl font-bold text-white/40">:</span>
+                <span class="text-xl font-bold text-white/30">:</span>
                 <div class="text-center px-2">
                     <span id="det-minutes" class="text-2xl font-bold text-white block leading-tight">19</span>
                     <span class="text-[10px] text-white/70 uppercase tracking-wider">min</span>
                 </div>
-                <span class="text-xl font-bold text-white/40">:</span>
+                <span class="text-xl font-bold text-white/30">:</span>
                 <div class="text-center px-2">
                     <span id="det-seconds" class="text-2xl font-bold text-white block leading-tight">37</span>
                     <span class="text-[10px] text-white/70 uppercase tracking-wider">seg</span>
@@ -164,7 +159,7 @@
 
                 <!-- Botão Excluir (Aparece apenas ao editar) -->
                 <div id="delete-container" class="pt-4 hidden">
-                    <button type="button" onclick="deleteCurrentEvent()" class="w-full bg-red-600/20 text-red-500 font-bold py-3.5 rounded-2xl border border-red-500/30 active:scale-95 transition-transform">
+                    <button type="button" onclick="deleteCurrentEvent()" class="w-full bg-red-600/10 text-red-500 font-bold py-3.5 rounded-2xl border border-red-500/20 active:scale-95 transition-transform">
                         Excluir contagem
                     </button>
                 </div>
@@ -214,7 +209,6 @@
                 const response = await fetch(API_URL);
                 eventsData = await response.json();
                 renderCards();
-                // Se estiver com a tela de detalhes aberta, atualiza os dados dela também
                 if (currentOpenEvent) {
                     const updated = eventsData.find(e => String(e.id) === String(currentOpenEvent.id));
                     if (updated) {
@@ -247,7 +241,7 @@
             const targetDate = parseValidDate(dateString);
             const now = new Date();
             
-            const diffTime = now.getTime() - targetDate.getTime(); // Passado vs Futuro
+            const diffTime = now.getTime() - targetDate.getTime(); 
             const absDiff = Math.abs(diffTime);
             
             const totalSeconds = Math.floor(absDiff / 1000);
@@ -290,53 +284,60 @@
 
                 if (totalDays === 0) {
                     rightSideHTML = `
-                        <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[70px]">
+                        <div class="text-right flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[70px]">
                             <span class="font-bold text-xl leading-none text-white">Hoje</span>
-                            <span class="text-[10px] text-white/80 mt-1 uppercase tracking-wider">Aproveite!</span>
+                            <span class="text-[9px] text-white/80 mt-1 uppercase tracking-widest">Aproveite!</span>
                         </div>
                     `;
                 } else if (viewMode === 'detailed') {
                     const breakdown = calculateDetailedBreakdown(event.data);
-                    let parts = [];
-                    if (breakdown.years > 0) parts.push(`${breakdown.years} ano${breakdown.years > 1 ? 's' : ''}`);
-                    if (breakdown.months > 0) parts.push(`${breakdown.months} mês${breakdown.months > 1 ? 'es' : ''}`);
-                    if (breakdown.days > 0 || parts.length === 0) parts.push(`${breakdown.days} dia${breakdown.days > 1 ? 's' : ''}`);
                     
-                    const partsHTML = parts.map(p => `<div class="text-[13px] font-bold text-white leading-snug whitespace-nowrap">${p}</div>`).join('');
+                    // Estrutura separando o número da palavra para o efeito visual desejado
+                    let parts = [];
+                    if (breakdown.years > 0) parts.push({val: breakdown.years, lbl: breakdown.years > 1 ? 'anos' : 'ano'});
+                    if (breakdown.months > 0) parts.push({val: breakdown.months, lbl: breakdown.months > 1 ? 'meses' : 'mês'});
+                    if (breakdown.days > 0 || parts.length === 0) parts.push({val: breakdown.days, lbl: breakdown.days > 1 ? 'dias' : 'dia'});
+                    
+                    const partsHTML = parts.map(p => `
+                        <div class="flex items-baseline justify-center space-x-1 leading-tight w-full">
+                            <span class="text-xl font-extrabold text-white">${p.val}</span>
+                            <span class="text-[10px] text-white/90 uppercase tracking-wide font-medium">${p.lbl}</span>
+                        </div>
+                    `).join('');
+                    
                     const labelText = isFuture ? "restantes" : "atrás";
+                    
                     rightSideHTML = `
-                        <div class="text-right flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[95px]">
-                            ${partsHTML}
-                            <div class="text-[9px] text-white/60 mt-1.5 uppercase tracking-wider border-t border-white/10 pt-1 w-full text-center">${labelText}</div>
+                        <div class="flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[90px]">
+                            <div class="flex flex-col items-start w-fit mx-auto">
+                                ${partsHTML}
+                            </div>
+                            <div class="text-[9px] text-white/60 mt-1.5 uppercase tracking-widest border-t border-white/10 pt-1.5 w-full text-center">${labelText}</div>
                         </div>
                     `;
                 } else {
                     const labelText = isFuture ? "dias" : "dias atrás";
                     rightSideHTML = `
-                        <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[70px]">
-                            <span class="font-bold text-4xl leading-none text-white">${totalDays}</span>
-                            <span class="text-[11px] text-white/80 mt-1 uppercase tracking-wider">${labelText}</span>
+                        <div class="text-right flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[80px]">
+                            <span class="font-extrabold text-3xl leading-none text-white">${totalDays}</span>
+                            <span class="text-[9px] text-white/80 mt-1.5 uppercase tracking-widest">${labelText}</span>
                         </div>
                     `;
                 }
 
                 const card = document.createElement('div');
-                card.className = "rounded-[24px] p-5 flex items-center shadow-md relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform";
+                // Estilo mais minimalista: p-4 ao invés de p-5, rounded-2xl
+                card.className = "rounded-2xl p-4 flex items-center shadow-sm relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform";
                 card.style.backgroundColor = cardColor;
                 card.onclick = () => openDetailScreen(event);
 
                 card.innerHTML = `
-                    <div class="relative mr-4 shrink-0">
-                        <span class="text-4xl block translate-y-[-2px]">${event.emoji || '📅'}</span>
-                        <div class="absolute -bottom-1 -right-2 bg-black/30 rounded-full w-5 h-5 flex items-center justify-center border border-white/20">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
+                    <div class="relative mr-3 shrink-0 flex items-center justify-center">
+                        <span class="text-3xl block">${event.emoji || '📅'}</span>
                     </div>
-                    <div class="flex-1 min-w-0 pr-2">
-                        <h3 class="font-bold text-white text-xl truncate">${event.titulo}</h3>
-                        <p class="text-[13px] text-white/80 truncate">${formatFullDateText(targetDate)}</p>
+                    <div class="flex-1 min-w-0 pr-3">
+                        <h3 class="font-bold text-white text-lg leading-tight mb-1 truncate">${event.titulo}</h3>
+                        <p class="text-[11.5px] text-white/90 leading-snug">${formatFullDateText(targetDate)}</p>
                     </div>
                     ${rightSideHTML}
                 `;
@@ -411,7 +412,6 @@
             document.getElementById('emoji-input').value = currentOpenEvent.emoji || '';
             document.getElementById('title-input').value = currentOpenEvent.titulo || '';
             
-            // Formatar data para YYYY-MM-DD para o input type="date"
             let cleanDate = String(currentOpenEvent.data).split('T')[0];
             document.getElementById('date-input').value = cleanDate;
 
@@ -492,7 +492,6 @@
                 await fetchDatas();
                 closeAddModal();
                 if (editId) {
-                    // Se estava editando na tela de detalhes, fecha ela para recalcular a visualização
                     closeDetailScreen();
                 }
             } catch (error) {
@@ -528,7 +527,6 @@
 
         // Inicia a aplicação
         fetchDatas();
-        // Atualiza a lista a cada minuto para manter os dias corretos
         setInterval(fetchDatas, 60000);
     </script>
 </body>
