@@ -71,7 +71,7 @@
 
         <!-- Conteúdo Detalhado Central -->
         <div class="flex-1 flex flex-col items-center justify-center p-6 text-center -mt-10">
-            <!-- Emoji com círculo em volta (Sem o Check) -->
+            <!-- Emoji com círculo em volta -->
             <div id="detail-emoji-container" class="w-32 h-32 rounded-full flex items-center justify-center shadow-xl relative mb-6 border-4 border-white/10">
                 <span id="detail-emoji" class="text-6xl">❤️</span>
             </div>
@@ -232,6 +232,20 @@
             return new Date(dateStr);
         }
 
+        // Função para formatar separando o dia da semana da data completa
+        function formatSplitDate(dateObj) {
+            const weekdayOpts = { weekday: 'long' };
+            const dateOpts = { day: 'numeric', month: 'long', year: 'numeric' };
+            
+            const weekday = dateObj.toLocaleDateString('pt-BR', weekdayOpts).toLowerCase();
+            const fullDate = dateObj.toLocaleDateString('pt-BR', dateOpts).toLowerCase();
+            
+            return {
+                weekday: weekday.charAt(0).toUpperCase() + weekday.slice(1),
+                date: fullDate
+            };
+        }
+
         function formatFullDateText(dateObj) {
             const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
             return dateObj.toLocaleDateString('pt-BR', options).toLowerCase();
@@ -292,42 +306,44 @@
                 } else if (viewMode === 'detailed') {
                     const breakdown = calculateDetailedBreakdown(event.data);
                     
-                    // Estrutura separando o número da palavra para o efeito visual desejado
                     let parts = [];
                     if (breakdown.years > 0) parts.push({val: breakdown.years, lbl: breakdown.years > 1 ? 'anos' : 'ano'});
                     if (breakdown.months > 0) parts.push({val: breakdown.months, lbl: breakdown.months > 1 ? 'meses' : 'mês'});
                     if (breakdown.days > 0 || parts.length === 0) parts.push({val: breakdown.days, lbl: breakdown.days > 1 ? 'dias' : 'dia'});
                     
+                    // Contagem com números ainda mais minimalistas (text-base / text-lg)
                     const partsHTML = parts.map(p => `
-                        <div class="flex items-baseline justify-center space-x-1 leading-tight w-full">
-                            <span class="text-xl font-extrabold text-white">${p.val}</span>
-                            <span class="text-[10px] text-white/90 uppercase tracking-wide font-medium">${p.lbl}</span>
+                        <div class="flex items-baseline justify-start space-x-1.5 leading-tight w-full">
+                            <span class="text-base font-extrabold text-white w-6 text-right">${p.val}</span>
+                            <span class="text-[9.5px] text-white/80 uppercase tracking-wide font-medium">${p.lbl}</span>
                         </div>
                     `).join('');
                     
                     const labelText = isFuture ? "restantes" : "atrás";
                     
                     rightSideHTML = `
-                        <div class="flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[90px]">
-                            <div class="flex flex-col items-start w-fit mx-auto">
+                        <div class="flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[85px]">
+                            <div class="flex flex-col items-start w-fit">
                                 ${partsHTML}
                             </div>
-                            <div class="text-[9px] text-white/60 mt-1.5 uppercase tracking-widest border-t border-white/10 pt-1.5 w-full text-center">${labelText}</div>
+                            <div class="text-[8.5px] text-white/50 mt-1 uppercase tracking-widest border-t border-white/10 pt-1 w-full text-center">${labelText}</div>
                         </div>
                     `;
                 } else {
                     const labelText = isFuture ? "dias" : "dias atrás";
                     rightSideHTML = `
-                        <div class="text-right flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[80px]">
-                            <span class="font-extrabold text-3xl leading-none text-white">${totalDays}</span>
-                            <span class="text-[9px] text-white/80 mt-1.5 uppercase tracking-widest">${labelText}</span>
+                        <div class="text-right flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[75px]">
+                            <span class="font-extrabold text-2xl leading-none text-white">${totalDays}</span>
+                            <span class="text-[8.5px] text-white/70 mt-1 uppercase tracking-widest">${labelText}</span>
                         </div>
                     `;
                 }
 
+                const splitDate = formatSplitDate(targetDate);
+
                 const card = document.createElement('div');
-                // Estilo mais minimalista: p-4 ao invés de p-5, rounded-2xl
-                card.className = "rounded-2xl p-4 flex items-center shadow-sm relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform";
+                // Padding reduzido (p-3.5) para deixar o card bem minimalista e compacto
+                card.className = "rounded-2xl p-3.5 flex items-center shadow-sm relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform";
                 card.style.backgroundColor = cardColor;
                 card.onclick = () => openDetailScreen(event);
 
@@ -335,9 +351,12 @@
                     <div class="relative mr-3 shrink-0 flex items-center justify-center">
                         <span class="text-3xl block">${event.emoji || '📅'}</span>
                     </div>
-                    <div class="flex-1 min-w-0 pr-3">
-                        <h3 class="font-bold text-white text-lg leading-tight mb-1 truncate">${event.titulo}</h3>
-                        <p class="text-[11.5px] text-white/90 leading-snug">${formatFullDateText(targetDate)}</p>
+                    <div class="flex-1 min-w-0 pr-2">
+                        <h3 class="font-bold text-white text-base leading-tight mb-0.5 truncate">${event.titulo}</h3>
+                        <div class="text-[11px] text-white/90 leading-snug">
+                            <span class="block">${splitDate.weekday}</span>
+                            <span class="block text-white/70 text-[10px]">${splitDate.date}</span>
+                        </div>
                     </div>
                     ${rightSideHTML}
                 `;
@@ -531,3 +550,4 @@
     </script>
 </body>
 </html>
+
