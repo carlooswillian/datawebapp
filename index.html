@@ -157,6 +157,17 @@
                     </div>
                 </div>
 
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2 ml-2">Formato da contagem (Apenas este card)</label>
+                    <div class="bg-[#1C1C1E] rounded-2xl p-2">
+                        <select id="card-view-mode" class="w-full bg-transparent border-none focus:outline-none text-white p-2">
+                            <option value="global" class="bg-[#2C2C2E]">Usar configuração global</option>
+                            <option value="days" class="bg-[#2C2C2E]">Apenas Dias</option>
+                            <option value="detailed" class="bg-[#2C2C2E]">Anos, Meses e Dias</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Botão Excluir (Aparece apenas ao editar) -->
                 <div id="delete-container" class="pt-4 hidden">
                     <button type="button" onclick="deleteCurrentEvent()" class="w-full bg-red-600/10 text-red-500 font-bold py-3.5 rounded-2xl border border-red-500/20 active:scale-95 transition-transform">
@@ -171,11 +182,11 @@
     <div id="settings-modal" class="fixed inset-0 bg-black/90 z-40 hidden flex items-end justify-center">
         <div class="bg-[#1C1C1E] w-full max-w-md rounded-t-3xl p-6 modal-enter relative border-t border-gray-800">
             <button onclick="toggleSettingsModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">X</button>
-            <h2 class="text-xl font-bold mb-6 text-white">Configurações</h2>
+            <h2 class="text-xl font-bold mb-6 text-white">Configurações globais</h2>
             
             <div class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-2">Formato da contagem na lista</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Formato padrão da contagem na lista</label>
                     <select id="view-mode-select" onchange="changeViewMode(this.value)" class="w-full border-gray-700 bg-[#2C2C2E] border rounded-lg p-3 focus:outline-none text-white">
                         <option value="days">Apenas Dias (Ex: 50 dias)</option>
                         <option value="detailed">Anos, Meses e Dias (Detalhado)</option>
@@ -198,8 +209,9 @@
         let currentOpenEvent = null;
         let timerInterval = null;
         
+        // COR ALTERADA AQUI: '#4A4A4E' adicionado como 3ª cor para melhor contraste
         const colors = [
-            '#A03C9E', '#5B62F4', '#3A3A3C', '#FF4057', 
+            '#A03C9E', '#5B62F4', '#4A4A4E', '#FF4057', 
             '#5D9C59', '#FF9500', '#34C759', '#5AC8FA'
         ];
         let selectedColor = colors[0]; 
@@ -232,7 +244,6 @@
             return new Date(dateStr);
         }
 
-        // Função para formatar separando o dia da semana da data completa
         function formatSplitDate(dateObj) {
             const weekdayOpts = { weekday: 'long' };
             const dateOpts = { day: 'numeric', month: 'long', year: 'numeric' };
@@ -295,6 +306,9 @@
 
                 let rightSideHTML = '';
                 const cardColor = event.cor || '#1E1E1E'; 
+                
+                // Define se usa a regra do card ou a global
+                const activeViewMode = (event.viewMode && event.viewMode !== 'global') ? event.viewMode : viewMode;
 
                 if (totalDays === 0) {
                     rightSideHTML = `
@@ -303,7 +317,7 @@
                             <span class="text-[9px] text-white/80 mt-1 uppercase tracking-widest">Aproveite!</span>
                         </div>
                     `;
-                } else if (viewMode === 'detailed') {
+                } else if (activeViewMode === 'detailed') {
                     const breakdown = calculateDetailedBreakdown(event.data);
                     
                     let parts = [];
@@ -311,7 +325,6 @@
                     if (breakdown.months > 0) parts.push({val: breakdown.months, lbl: breakdown.months > 1 ? 'meses' : 'mês'});
                     if (breakdown.days > 0 || parts.length === 0) parts.push({val: breakdown.days, lbl: breakdown.days > 1 ? 'dias' : 'dia'});
                     
-                    // Contagem com números ainda mais minimalistas (text-base / text-lg)
                     const partsHTML = parts.map(p => `
                         <div class="flex items-baseline justify-start space-x-1.5 leading-tight w-full">
                             <span class="text-base font-extrabold text-white w-6 text-right">${p.val}</span>
@@ -342,7 +355,6 @@
                 const splitDate = formatSplitDate(targetDate);
 
                 const card = document.createElement('div');
-                // Padding reduzido (p-3.5) para deixar o card bem minimalista e compacto
                 card.className = "rounded-2xl p-3.5 flex items-center shadow-sm relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform";
                 card.style.backgroundColor = cardColor;
                 card.onclick = () => openDetailScreen(event);
@@ -372,7 +384,7 @@
             document.getElementById('main-footer-btn').classList.add('hidden');
 
             const detailScreen = document.getElementById('detail-screen');
-            detailScreen.style.backgroundColor = event.cor || '#1E1E1E';
+            detailScreen.style.backgroundColor = event.cor || '#4A4A4E'; // Usa fallback na nova cor caso falhe
             detailScreen.classList.remove('hidden');
             detailScreen.classList.add('flex', 'fade-in');
 
@@ -416,6 +428,8 @@
             document.getElementById('modal-header-title').innerText = "Nova contagem";
             document.getElementById('delete-container').classList.add('hidden');
             document.getElementById('add-form').reset();
+            document.getElementById('card-view-mode').value = 'global'; // Limpa select de view mode
+            
             selectedColor = colors[0];
             renderColorPicker();
             
@@ -436,6 +450,9 @@
 
             selectedColor = currentOpenEvent.cor || colors[0];
             renderColorPicker();
+            
+            document.getElementById('card-view-mode').value = currentOpenEvent.viewMode || 'global';
+            
             document.getElementById('delete-container').classList.remove('hidden');
 
             const modal = document.getElementById('add-modal');
@@ -500,7 +517,8 @@
                 emoji: document.getElementById('emoji-input').value,
                 titulo: document.getElementById('title-input').value,
                 data: document.getElementById('date-input').value,
-                cor: selectedColor 
+                cor: selectedColor,
+                viewMode: document.getElementById('card-view-mode').value // Adicionado para salvar a config do card
             };
 
             try {
@@ -550,4 +568,3 @@
     </script>
 </body>
 </html>
-
