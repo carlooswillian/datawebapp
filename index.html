@@ -267,14 +267,18 @@
         let viewMode = localStorage.getItem('viewModePref') || 'days'; 
         let currentSort = localStorage.getItem('sortPref') || 'manual';
         
-        let isReordering = false; // NOVA VARIÁVEL: Controla se o ícone = aparece
+        let isReordering = false; 
         let currentOpenEvent = null;
         let timerInterval = null;
         let sortableInstance = null; 
         
+        // NOVO: 25 Cores (Originais + 17 novas opções de tons pastéis e vibrantes)
         const colors = [
-            '#A03C9E', '#5B62F4', '#4A4A4E', '#FF4057', 
-            '#5D9C59', '#FF9500', '#34C759', '#5AC8FA'
+            '#FF3B30', '#FF2D55', '#FF4057', '#E91E63', '#9C27B0', // Vermelhos e Rosas
+            '#AF52DE', '#8B5CF6', '#5B62F4', '#5856D6', '#A03C9E', // Roxos e Anil
+            '#007AFF', '#3B82F6', '#32ADE6', '#5AC8FA', '#06B6D4', // Azuis e Cianos
+            '#34C759', '#30D158', '#5D9C59', '#10B981', '#059669', // Verdes
+            '#FF9500', '#F59E0B', '#FFCC00', '#E67E22', '#4A4A4E'  // Laranjas, Amarelos e Cinza Base
         ];
         let selectedColor = colors[0]; 
 
@@ -374,9 +378,10 @@
                 const cardColor = event.cor || '#1E1E1E'; 
                 const activeViewMode = (event.viewMode && event.viewMode !== 'global') ? event.viewMode : viewMode;
 
+                // AJUSTE: min-w e pl-4 aumentados em todas as visualizações para puxar o traço para o meio
                 if (totalDays === 0) {
                     rightSideHTML = `
-                        <div class="text-right flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[70px]">
+                        <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[90px]">
                             <span class="font-bold text-xl leading-none text-white">Hoje</span>
                             <span class="text-[9px] text-white/80 mt-1 uppercase tracking-widest">Aproveite!</span>
                         </div>
@@ -390,7 +395,7 @@
                     
                     const partsHTML = parts.map(p => `
                         <div class="flex items-baseline justify-start space-x-1.5 leading-tight w-full">
-                            <span class="text-base font-extrabold text-white w-6 text-right">${p.val}</span>
+                            <span class="text-base font-extrabold text-white min-w-[24px] text-right">${p.val}</span>
                             <span class="text-[9.5px] text-white/80 uppercase tracking-wide font-medium">${p.lbl}</span>
                         </div>
                     `).join('');
@@ -398,7 +403,7 @@
                     const labelText = isFuture ? "restantes" : "atrás";
                     
                     rightSideHTML = `
-                        <div class="flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[85px]">
+                        <div class="flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[110px]">
                             <div class="flex flex-col items-start w-fit">
                                 ${partsHTML}
                             </div>
@@ -408,7 +413,7 @@
                 } else {
                     const labelText = isFuture ? "dias" : "dias atrás";
                     rightSideHTML = `
-                        <div class="text-right flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 min-w-[75px]">
+                        <div class="text-right flex flex-col items-center justify-center pl-4 border-l border-white/20 shrink-0 min-w-[90px]">
                             <span class="font-extrabold text-2xl leading-none text-white">${totalDays}</span>
                             <span class="text-[8.5px] text-white/70 mt-1 uppercase tracking-widest">${labelText}</span>
                         </div>
@@ -422,7 +427,6 @@
                 card.style.backgroundColor = cardColor;
                 card.setAttribute('data-id', event.id);
 
-                // Evita que o card abra os detalhes caso você esteja no modo de reorganizar
                 card.onclick = (e) => {
                     if (isReordering) return; 
                     if(!e.target.closest('.drag-handle')) {
@@ -455,7 +459,6 @@
             initSortable();
         }
 
-        // Ativa e desativa o modo de reorganização (mostra as barrinhas)
         function toggleReorderMode(active) {
             isReordering = active;
             const container = document.getElementById('cards-container');
@@ -463,20 +466,19 @@
             const reorderFooter = document.getElementById('reorder-footer-btn');
             
             if (active) {
-                // Se for ativado, força a ordem "Manual"
                 if (currentSort !== 'manual') {
                     currentSort = 'manual';
                     localStorage.setItem('sortPref', 'manual');
                     renderCards();
                 }
-                container.classList.add('reorder-active'); // Classe que exibe os ícones via CSS
+                container.classList.add('reorder-active'); 
                 mainFooter.classList.add('hidden');
                 mainFooter.classList.remove('flex');
                 reorderFooter.classList.remove('hidden');
                 reorderFooter.classList.add('flex');
                 toggleSortModal(false);
             } else {
-                container.classList.remove('reorder-active'); // Esconde os ícones
+                container.classList.remove('reorder-active'); 
                 mainFooter.classList.remove('hidden');
                 mainFooter.classList.add('flex');
                 reorderFooter.classList.add('hidden');
@@ -722,7 +724,6 @@
 
         fetchDatas();
         
-        // Bloqueia a atualização de fundo se o usuário estiver organizando os cards para não piscar a tela
         setInterval(() => {
             if (!isReordering) fetchDatas();
         }, 60000); 
