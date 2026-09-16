@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Datas Importantes</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Adicionado SortableJS para drag & drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         body { 
             -webkit-tap-highlight-color: transparent; 
@@ -23,6 +25,9 @@
         }
         ::-webkit-scrollbar { display: none; }
         ::-webkit-calendar-picker-indicator { filter: invert(1); }
+        /* Estado para o card enquanto é arrastado */
+        .sortable-ghost { opacity: 0.4; }
+        .sortable-drag { cursor: grabbing !important; }
     </style>
 </head>
 <body class="font-sans antialiased min-h-screen pb-32">
@@ -30,12 +35,23 @@
     <!-- Tela Principal: Header -->
     <header id="main-header" class="px-6 py-4 flex justify-between items-center sticky top-0 bg-black/80 backdrop-blur-md z-10">
         <h1 class="text-2xl font-bold text-white tracking-wide">Nossas Datas</h1>
-        <button onclick="toggleSettingsModal(true)" class="text-gray-400 hover:text-white p-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-        </button>
+        
+        <div class="flex items-center space-x-2">
+            <!-- Botão de Ordenação (NOVO) -->
+            <button onclick="toggleSortModal(true)" class="text-gray-400 hover:text-white p-2 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                </svg>
+            </button>
+
+            <!-- Botão de Configurações -->
+            <button onclick="toggleSettingsModal(true)" class="text-gray-400 hover:text-white p-2 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button>
+        </div>
     </header>
 
     <!-- Tela Principal: Container dos Cards -->
@@ -44,8 +60,8 @@
     </main>
 
     <!-- Botão Inferior (Nova Contagem) -->
-    <div id="main-footer-btn" class="fixed bottom-6 w-full px-4 z-20 flex justify-center">
-        <button onclick="openAddModal()" class="w-full max-w-sm bg-[#3A7CF7] text-white font-bold py-4 rounded-full shadow-lg flex items-center justify-center text-lg active:scale-95 transition-transform">
+    <div id="main-footer-btn" class="fixed bottom-6 w-full px-4 z-20 flex justify-center pointer-events-none">
+        <button onclick="openAddModal()" class="pointer-events-auto w-full max-w-sm bg-[#3A7CF7] text-white font-bold py-4 rounded-full shadow-lg flex items-center justify-center text-lg active:scale-95 transition-transform">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
@@ -71,47 +87,43 @@
 
         <!-- Conteúdo Detalhado Central -->
         <div class="flex-1 flex flex-col items-center justify-center p-6 text-center -mt-10">
-            <!-- Emoji com círculo em volta -->
             <div id="detail-emoji-container" class="w-32 h-32 rounded-full flex items-center justify-center shadow-xl relative mb-6 border-4 border-white/10">
                 <span id="detail-emoji" class="text-6xl">❤️</span>
             </div>
 
-            <!-- Título e Data Completa -->
             <h2 id="detail-title" class="text-3xl font-bold text-white mb-1">Namoro</h2>
             <p id="detail-date-text" class="text-sm text-white/90 mb-8 capitalize">domingo, 30 de abril de 2023</p>
 
-            <!-- Bloco 1: Anos, Meses e Dias -->
             <div class="bg-black/25 backdrop-blur-md rounded-2xl p-4 w-full max-w-sm mb-4 border border-white/10 shadow-lg flex justify-around items-center">
                 <div class="text-center px-2">
-                    <span id="det-years" class="text-3xl font-bold text-white block leading-tight">3</span>
+                    <span id="det-years" class="text-3xl font-bold text-white block leading-tight">0</span>
                     <span class="text-xs text-white/70 uppercase tracking-wider font-medium">anos</span>
                 </div>
                 <div class="h-8 w-px bg-white/20"></div>
                 <div class="text-center px-2">
-                    <span id="det-months" class="text-3xl font-bold text-white block leading-tight">4</span>
+                    <span id="det-months" class="text-3xl font-bold text-white block leading-tight">0</span>
                     <span class="text-xs text-white/70 uppercase tracking-wider font-medium">meses</span>
                 </div>
                 <div class="h-8 w-px bg-white/20"></div>
                 <div class="text-center px-2">
-                    <span id="det-days" class="text-3xl font-bold text-white block leading-tight">8</span>
+                    <span id="det-days" class="text-3xl font-bold text-white block leading-tight">0</span>
                     <span class="text-xs text-white/70 uppercase tracking-wider font-medium">dias</span>
                 </div>
             </div>
 
-            <!-- Bloco 2: Horas, Minutos e Segundos -->
             <div class="bg-black/25 backdrop-blur-md rounded-2xl p-4 w-full max-w-sm border border-white/10 shadow-lg flex justify-around items-center">
                 <div class="text-center px-2">
-                    <span id="det-hours" class="text-2xl font-bold text-white block leading-tight">10</span>
+                    <span id="det-hours" class="text-2xl font-bold text-white block leading-tight">00</span>
                     <span class="text-[10px] text-white/70 uppercase tracking-wider">horas</span>
                 </div>
                 <span class="text-xl font-bold text-white/30">:</span>
                 <div class="text-center px-2">
-                    <span id="det-minutes" class="text-2xl font-bold text-white block leading-tight">19</span>
+                    <span id="det-minutes" class="text-2xl font-bold text-white block leading-tight">00</span>
                     <span class="text-[10px] text-white/70 uppercase tracking-wider">min</span>
                 </div>
                 <span class="text-xl font-bold text-white/30">:</span>
                 <div class="text-center px-2">
-                    <span id="det-seconds" class="text-2xl font-bold text-white block leading-tight">37</span>
+                    <span id="det-seconds" class="text-2xl font-bold text-white block leading-tight">00</span>
                     <span class="text-[10px] text-white/70 uppercase tracking-wider">seg</span>
                 </div>
             </div>
@@ -168,7 +180,6 @@
                     </div>
                 </div>
 
-                <!-- Botão Excluir (Aparece apenas ao editar) -->
                 <div id="delete-container" class="pt-4 hidden">
                     <button type="button" onclick="deleteCurrentEvent()" class="w-full bg-red-600/10 text-red-500 font-bold py-3.5 rounded-2xl border border-red-500/20 active:scale-95 transition-transform">
                         Excluir contagem
@@ -182,11 +193,11 @@
     <div id="settings-modal" class="fixed inset-0 bg-black/90 z-40 hidden flex items-end justify-center">
         <div class="bg-[#1C1C1E] w-full max-w-md rounded-t-3xl p-6 modal-enter relative border-t border-gray-800">
             <button onclick="toggleSettingsModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">X</button>
-            <h2 class="text-xl font-bold mb-6 text-white">Configurações globais</h2>
+            <h2 class="text-xl font-bold mb-6 text-white">Configurações</h2>
             
             <div class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-400 mb-2">Formato padrão da contagem na lista</label>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Formato padrão da contagem</label>
                     <select id="view-mode-select" onchange="changeViewMode(this.value)" class="w-full border-gray-700 bg-[#2C2C2E] border rounded-lg p-3 focus:outline-none text-white">
                         <option value="days">Apenas Dias (Ex: 50 dias)</option>
                         <option value="detailed">Anos, Meses e Dias (Detalhado)</option>
@@ -200,16 +211,41 @@
         </div>
     </div>
 
+    <!-- Modal de Ordenação (NOVO) -->
+    <div id="sort-modal" class="fixed inset-0 bg-black/90 z-40 hidden flex items-end justify-center">
+        <div class="bg-[#1C1C1E] w-full max-w-md rounded-t-3xl p-6 modal-enter relative border-t border-gray-800">
+            <button onclick="toggleSortModal(false)" class="absolute top-4 right-6 text-gray-400 font-bold text-xl">X</button>
+            <h2 class="text-xl font-bold mb-6 text-white">Ordenar Cards Por</h2>
+            
+            <div class="space-y-3 flex flex-col">
+                <button onclick="changeSortOrder('date')" id="btn-sort-date" class="bg-[#2C2C2E] text-left px-4 py-3.5 rounded-xl text-white font-medium hover:bg-gray-700 transition">
+                    Data Mais Próxima
+                </button>
+                <button onclick="changeSortOrder('alpha')" id="btn-sort-alpha" class="bg-[#2C2C2E] text-left px-4 py-3.5 rounded-xl text-white font-medium hover:bg-gray-700 transition">
+                    Ordem Alfabética (A-Z)
+                </button>
+                <button onclick="changeSortOrder('manual')" id="btn-sort-manual" class="bg-[#2C2C2E] text-left px-4 py-3.5 rounded-xl text-white font-medium hover:bg-gray-700 transition flex justify-between items-center">
+                    <span>Manual (Arrastado)</span>
+                    <span class="text-xs text-gray-400 font-normal">Padrão</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // COLOQUE SUA URL DO APPS SCRIPT AQUI
         const API_URL = "https://script.google.com/macros/s/AKfycbwb7wzDPK59bm_IPQEBq3aJCiK9xYY3x1i1alunem9GYeV4oPGjuaw3k87gKfN4CM77/exec";
 
         let eventsData = [];
         let viewMode = localStorage.getItem('viewModePref') || 'days'; 
+        
+        // Nova variável para guardar a preferência de ordenação ('manual', 'date', 'alpha')
+        let currentSort = localStorage.getItem('sortPref') || 'manual';
+        
         let currentOpenEvent = null;
         let timerInterval = null;
+        let sortableInstance = null; // Instância do SortableJS
         
-        // COR ALTERADA AQUI: '#4A4A4E' adicionado como 3ª cor para melhor contraste
         const colors = [
             '#A03C9E', '#5B62F4', '#4A4A4E', '#FF4057', 
             '#5D9C59', '#FF9500', '#34C759', '#5AC8FA'
@@ -247,7 +283,6 @@
         function formatSplitDate(dateObj) {
             const weekdayOpts = { weekday: 'long' };
             const dateOpts = { day: 'numeric', month: 'long', year: 'numeric' };
-            
             const weekday = dateObj.toLocaleDateString('pt-BR', weekdayOpts).toLowerCase();
             const fullDate = dateObj.toLocaleDateString('pt-BR', dateOpts).toLowerCase();
             
@@ -265,10 +300,8 @@
         function calculateDetailedBreakdown(dateString) {
             const targetDate = parseValidDate(dateString);
             const now = new Date();
-            
             const diffTime = now.getTime() - targetDate.getTime(); 
             const absDiff = Math.abs(diffTime);
-            
             const totalSeconds = Math.floor(absDiff / 1000);
             const totalMinutes = Math.floor(totalSeconds / 60);
             const totalHours = Math.floor(totalMinutes / 60);
@@ -277,7 +310,6 @@
             let years = Math.floor(totalDays / 365);
             let months = Math.floor((totalDays % 365) / 30);
             let days = Math.floor((totalDays % 365) % 30);
-
             let hours = totalHours % 24;
             let minutes = totalMinutes % 60;
             let seconds = totalSeconds % 60;
@@ -285,6 +317,7 @@
             return { years, months, days, hours, minutes, seconds, totalDays, isFuture: diffTime < 0 };
         }
 
+        // Função que renderiza os cards aplicando a ordenação e ativa o drag and drop
         function renderCards() {
             const container = document.getElementById('cards-container');
             container.innerHTML = '';
@@ -294,7 +327,17 @@
                 return;
             }
 
-            eventsData.sort((a, b) => parseValidDate(a.data).getTime() - parseValidDate(b.data).getTime());
+            // Aplicando Lógica de Ordenação
+            eventsData.sort((a, b) => {
+                if (currentSort === 'alpha') {
+                    return a.titulo.localeCompare(b.titulo);
+                } else if (currentSort === 'date') {
+                    return parseValidDate(a.data).getTime() - parseValidDate(b.data).getTime();
+                } else {
+                    // Manual - Ordena pela ordem numérica salva no banco (fallback p/ 0)
+                    return (a.ordem || 0) - (b.ordem || 0);
+                }
+            });
 
             eventsData.forEach(event => {
                 const targetDate = parseValidDate(event.data);
@@ -306,8 +349,6 @@
 
                 let rightSideHTML = '';
                 const cardColor = event.cor || '#1E1E1E'; 
-                
-                // Define se usa a regra do card ou a global
                 const activeViewMode = (event.viewMode && event.viewMode !== 'global') ? event.viewMode : viewMode;
 
                 if (totalDays === 0) {
@@ -319,7 +360,6 @@
                     `;
                 } else if (activeViewMode === 'detailed') {
                     const breakdown = calculateDetailedBreakdown(event.data);
-                    
                     let parts = [];
                     if (breakdown.years > 0) parts.push({val: breakdown.years, lbl: breakdown.years > 1 ? 'anos' : 'ano'});
                     if (breakdown.months > 0) parts.push({val: breakdown.months, lbl: breakdown.months > 1 ? 'meses' : 'mês'});
@@ -355,11 +395,25 @@
                 const splitDate = formatSplitDate(targetDate);
 
                 const card = document.createElement('div');
-                card.className = "rounded-2xl p-3.5 flex items-center shadow-sm relative overflow-hidden cursor-pointer active:scale-[0.98] transition-transform";
+                card.className = "rounded-2xl p-3 flex items-center shadow-sm relative cursor-pointer active:scale-[0.98] transition-transform select-none";
                 card.style.backgroundColor = cardColor;
-                card.onclick = () => openDetailScreen(event);
+                card.setAttribute('data-id', event.id); // Salva o ID para a ordenação
+
+                // Função de clique - Previne clique na tela de detalhes se clicar nas barrinhas (arrastar)
+                card.onclick = (e) => {
+                    if(!e.target.closest('.drag-handle')) {
+                        openDetailScreen(event);
+                    }
+                };
 
                 card.innerHTML = `
+                    <!-- Ícone Lateral Para Arrastar (Drag Handle) -->
+                    <div class="drag-handle flex items-center justify-center pr-2 py-2 text-white/30 hover:text-white/60 cursor-grab active:cursor-grabbing">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                        </svg>
+                    </div>
+
                     <div class="relative mr-3 shrink-0 flex items-center justify-center">
                         <span class="text-3xl block">${event.emoji || '📅'}</span>
                     </div>
@@ -374,9 +428,90 @@
                 `;
                 container.appendChild(card);
             });
+
+            // Inicializa a funcionalidade de drag and drop na lista
+            initSortable();
         }
 
-        // --- TELA DE DETALHES ---
+        // Função para ativar o Drag & Drop e salvar
+        function initSortable() {
+            const container = document.getElementById('cards-container');
+            if(sortableInstance) sortableInstance.destroy();
+            
+            sortableInstance = new Sortable(container, {
+                animation: 200,
+                handle: '.drag-handle', // Define que só arrasta clicando nas barrinhas
+                ghostClass: 'sortable-ghost',
+                onEnd: function (evt) {
+                    if (evt.oldIndex === evt.newIndex) return;
+                    
+                    // Se o usuário arrastou, muda o método automaticamente para manual
+                    if (currentSort !== 'manual') {
+                        currentSort = 'manual';
+                        localStorage.setItem('sortPref', 'manual');
+                    }
+                    saveNewOrder(); // Salva no Google Sheets
+                }
+            });
+        }
+
+        async function saveNewOrder() {
+            const container = document.getElementById('cards-container');
+            const cards = container.children;
+            const orderData = [];
+            
+            for (let i = 0; i < cards.length; i++) {
+                const id = cards[i].getAttribute('data-id');
+                if(!id) continue;
+                orderData.push({ id: id, order: i });
+                
+                // Atualiza o objeto no navegador imediatamente
+                const event = eventsData.find(e => String(e.id) === String(id));
+                if(event) event.ordem = i;
+            }
+
+            // Envia para a API o array com a ordem de cada card
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'reorder', orderData: orderData })
+                });
+            } catch (error) {
+                console.error("Erro ao salvar ordem no servidor.", error);
+            }
+        }
+
+        // --- MUDANÇA DE ORDENAÇÃO PELO MENU ---
+        function toggleSortModal(show) {
+            const modal = document.getElementById('sort-modal');
+            if (show) {
+                // Atualiza as cores baseadas na seleção
+                ['date', 'alpha', 'manual'].forEach(type => {
+                    const btn = document.getElementById(`btn-sort-${type}`);
+                    if (currentSort === type) {
+                        btn.classList.add('bg-[#3A7CF7]', 'text-white');
+                        btn.classList.remove('bg-[#2C2C2E]');
+                    } else {
+                        btn.classList.add('bg-[#2C2C2E]');
+                        btn.classList.remove('bg-[#3A7CF7]', 'text-white');
+                    }
+                });
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function changeSortOrder(newSortType) {
+            currentSort = newSortType;
+            localStorage.setItem('sortPref', newSortType);
+            toggleSortModal(false);
+            renderCards(); // Atualiza a tela com a nova ordem
+        }
+
+
+        // --- RESTANTE DO CÓDIGO (TELAS E MODAIS) ---
+
         function openDetailScreen(event) {
             currentOpenEvent = event;
             document.getElementById('main-header').classList.add('hidden');
@@ -384,7 +519,7 @@
             document.getElementById('main-footer-btn').classList.add('hidden');
 
             const detailScreen = document.getElementById('detail-screen');
-            detailScreen.style.backgroundColor = event.cor || '#4A4A4E'; // Usa fallback na nova cor caso falhe
+            detailScreen.style.backgroundColor = event.cor || '#4A4A4E'; 
             detailScreen.classList.remove('hidden');
             detailScreen.classList.add('flex', 'fade-in');
 
@@ -422,13 +557,12 @@
             document.getElementById('det-seconds').innerText = String(b.seconds).padStart(2, '0');
         }
 
-        // --- MODAL ADICIONAR / EDITAR ---
         function openAddModal() {
             document.getElementById('edit-id').value = '';
             document.getElementById('modal-header-title').innerText = "Nova contagem";
             document.getElementById('delete-container').classList.add('hidden');
             document.getElementById('add-form').reset();
-            document.getElementById('card-view-mode').value = 'global'; // Limpa select de view mode
+            document.getElementById('card-view-mode').value = 'global'; 
             
             selectedColor = colors[0];
             renderColorPicker();
@@ -501,7 +635,6 @@
             });
         }
 
-        // --- SALVAR (CRIAR OU EDITAR) ---
         document.getElementById('add-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-salvar');
@@ -518,19 +651,14 @@
                 titulo: document.getElementById('title-input').value,
                 data: document.getElementById('date-input').value,
                 cor: selectedColor,
-                viewMode: document.getElementById('card-view-mode').value // Adicionado para salvar a config do card
+                viewMode: document.getElementById('card-view-mode').value 
             };
 
             try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                 await fetchDatas();
                 closeAddModal();
-                if (editId) {
-                    closeDetailScreen();
-                }
+                if (editId) closeDetailScreen();
             } catch (error) {
                 alert("Erro ao salvar. Tente novamente.");
             } finally {
@@ -539,21 +667,14 @@
             }
         });
 
-        // --- EXCLUIR ---
         async function deleteCurrentEvent() {
             if (!currentOpenEvent) return;
             if (!confirm("Tem certeza que deseja excluir esta contagem?")) return;
 
-            const payload = {
-                action: 'delete',
-                id: currentOpenEvent.id
-            };
+            const payload = { action: 'delete', id: currentOpenEvent.id };
 
             try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
+                await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                 closeAddModal();
                 closeDetailScreen();
                 await fetchDatas();
@@ -564,7 +685,7 @@
 
         // Inicia a aplicação
         fetchDatas();
-        setInterval(fetchDatas, 60000);
+        setInterval(fetchDatas, 60000); // Atualiza dados em plano de fundo a cada 1 minuto
     </script>
 </body>
 </html>
