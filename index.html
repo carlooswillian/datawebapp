@@ -84,7 +84,6 @@
 
     <!-- TELA DE DETALHES DO CARD -->
     <div id="detail-screen" class="fixed inset-0 z-30 hidden flex-col transition-all">
-        <!-- Header Detalhes -->
         <div class="px-6 py-4 flex justify-between items-center bg-black/20 backdrop-blur-md">
             <button onclick="closeDetailScreen()" class="bg-black/30 rounded-full p-2 text-white hover:bg-black/50 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -98,7 +97,6 @@
             </div>
         </div>
 
-        <!-- Conteúdo Detalhado Central -->
         <div class="flex-1 flex flex-col items-center justify-center p-6 text-center -mt-10">
             <div id="detail-emoji-container" class="w-32 h-32 rounded-full flex items-center justify-center shadow-xl relative mb-6 border-4 border-white/10">
                 <span id="detail-emoji" class="text-6xl">❤️</span>
@@ -372,7 +370,6 @@
                 const cardColor = event.cor || '#1E1E1E'; 
                 const activeViewMode = (event.viewMode && event.viewMode !== 'global') ? event.viewMode : viewMode;
 
-                // ALTERAÇÃO DO DESIGN DA DIREITA - PADRONIZAÇÃO DE TAMANHO
                 if (totalDays === 0) {
                     rightSideHTML = `
                         <div class="flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 w-[105px]">
@@ -383,17 +380,39 @@
                 } else if (activeViewMode === 'detailed') {
                     const breakdown = calculateDetailedBreakdown(event.data);
                     let parts = [];
-                    // Adicionando as Iniciais (A, M, D) para economizar espaço e deixar na mesma linha
-                    if (breakdown.years > 0) parts.push({val: breakdown.years, lbl: 'A'});
-                    if (breakdown.months > 0) parts.push({val: breakdown.months, lbl: 'M'});
-                    if (breakdown.days > 0 || parts.length === 0) parts.push({val: breakdown.days, lbl: 'D'});
                     
-                    const partsHTML = parts.map(p => `
-                        <div class="flex items-baseline">
-                            <span class="text-[1.15rem] font-extrabold text-white leading-none">${p.val}</span>
-                            <span class="text-[9px] text-white/80 font-bold ml-0.5">${p.lbl}</span>
-                        </div>
-                    `).join('<div class="w-1.5"></div>');
+                    if (breakdown.years > 0) parts.push({val: breakdown.years, type: 'y'});
+                    if (breakdown.months > 0) parts.push({val: breakdown.months, type: 'm'});
+                    if (breakdown.days > 0 || parts.length === 0) parts.push({val: breakdown.days, type: 'd'});
+                    
+                    let partsHTML = "";
+                    
+                    // NOVA LÓGICA: Se houver apenas 1 medida, escrevemos por extenso
+                    if (parts.length === 1) {
+                        const p = parts[0];
+                        let lbl = "";
+                        if (p.type === 'y') lbl = p.val === 1 ? "ano" : "anos";
+                        else if (p.type === 'm') lbl = p.val === 1 ? "mês" : "meses";
+                        else if (p.type === 'd') lbl = p.val === 1 ? "dia" : "dias";
+                        
+                        partsHTML = `
+                            <div class="flex items-baseline">
+                                <span class="text-[1.35rem] font-extrabold text-white leading-none">${p.val}</span>
+                                <span class="text-[10px] text-white/80 font-bold ml-1 uppercase">${lbl}</span>
+                            </div>
+                        `;
+                    } else {
+                        // Se houver 2 ou 3 medidas, mantemos a versão compacta com as iniciais
+                        partsHTML = parts.map(p => {
+                            const lbl = p.type === 'y' ? 'A' : p.type === 'm' ? 'M' : 'D';
+                            return `
+                                <div class="flex items-baseline">
+                                    <span class="text-[1.15rem] font-extrabold text-white leading-none">${p.val}</span>
+                                    <span class="text-[9px] text-white/80 font-bold ml-0.5">${lbl}</span>
+                                </div>
+                            `;
+                        }).join('<div class="w-1.5"></div>');
+                    }
                     
                     const labelText = isFuture ? "restantes" : "atrás";
                     
@@ -402,15 +421,16 @@
                             <div class="flex items-center justify-center w-full mb-1">
                                 ${partsHTML}
                             </div>
-                            <div class="text-[8.5px] text-white/50 uppercase tracking-widest text-center">${labelText}</div>
+                            <div class="text-[8.5px] text-white/60 uppercase tracking-widest text-center">${labelText}</div>
                         </div>
                     `;
                 } else {
-                    const labelText = isFuture ? "dias" : "dias atrás";
+                    // NOVA LÓGICA MODO SIMPLES: Mostra 'Dias Restantes' ou 'Dias Atrás'
+                    const labelText = isFuture ? "DIAS<br>RESTANTES" : "DIAS<br>ATRÁS";
                     rightSideHTML = `
                         <div class="flex flex-col items-center justify-center pl-3 border-l border-white/20 shrink-0 w-[105px]">
                             <span class="font-extrabold text-2xl leading-none text-white mb-1">${totalDays}</span>
-                            <span class="text-[8.5px] text-white/70 uppercase tracking-widest text-center">${labelText}</span>
+                            <span class="text-[8px] text-white/70 uppercase tracking-widest text-center leading-tight">${labelText}</span>
                         </div>
                     `;
                 }
@@ -418,7 +438,6 @@
                 const splitDate = formatSplitDate(targetDate);
 
                 const card = document.createElement('div');
-                // min-h-[92px] garante que TODOS os cards tenham exatamente a mesma altura independente do formato
                 card.className = "rounded-2xl p-3 flex items-center shadow-sm relative cursor-pointer active:scale-[0.98] transition-transform select-none min-h-[92px]";
                 card.style.backgroundColor = cardColor;
                 card.setAttribute('data-id', event.id);
